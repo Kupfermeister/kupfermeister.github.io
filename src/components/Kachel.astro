@@ -7,9 +7,12 @@ interface Props {
   kuerzel?: string;
   farbe?: string;
   label?: string;
+  nr?: string;
+  status?: string;
   klein?: boolean;
 }
-const { href, titel, text, kuerzel, farbe, label, klein = false } = Astro.props;
+const { href, titel, text, kuerzel, farbe, label, nr, status, klein = false } = Astro.props;
+const oben = [nr, label].filter(Boolean).join(" · ");
 const Tag = href ? 'a' : 'div';
 ---
 <Tag
@@ -17,10 +20,11 @@ const Tag = href ? 'a' : 'div';
   href={href}
   style={farbe ? `--k:${farbe}` : undefined}
 >
+  {(nr && oben) && <span class="kachel-nr">{oben}</span>}
   <span class="kachel-kopf">
     {kuerzel && <span class="kachel-kuerzel" aria-hidden="true">{kuerzel}</span>}
     <span class="kachel-titel">{titel}</span>
   </span>
   {text && <span class="kachel-text">{text}</span>}
-  {label && <span class="kachel-label">{label}</span>}
+  {(status ?? (!nr && label)) && <span class="kachel-label">{status ?? label}</span>}
 </Tag>

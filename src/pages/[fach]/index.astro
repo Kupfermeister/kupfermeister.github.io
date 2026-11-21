@@ -31,10 +31,11 @@ const themen = await alleThemen(fach.slug);
     )}
     <li><a href={abiturerlass.href + (fach.data.erlassSeite ? `#page=${fach.data.erlassSeite}` : "")} target="_blank" rel="noopener" title={abiturerlass.stand}>{abiturerlass.titel} <span class="pdf">PDF</span></a></li>
   </ul>
-  <div class="kacheln klein">
-    {themen.map((t) => (
+  <div class="kacheln">
+    {themen.map((t, i) => (
       <Kachel
-        klein
+        nr={String(i + 1).padStart(2, "0")}
+        status="Öffnen →"
         href={url(`${fach.slug}/${t.slug}/`)}
         titel={t.data.titel}
         text={t.data.beschreibung}
