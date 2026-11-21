@@ -5,13 +5,12 @@ import FachKachel from '../components/FachKachel.astro';
 import { alleFaecher, alleThemen, url } from '../lib/inhalt';
 import { seite } from '../design/seite';
 
-const faecher = await alleFaecher();
+const faecher = (await alleFaecher()).sort((a, b) => a.data.titel.localeCompare(b.data.titel, "de"));
 const themen = await alleThemen();
 const anzahl = (f: string) => themen.filter((t) => t.fach === f).length;
 ---
 <Basis titel={seite.name}>
   <section class="start">
-    <p class="lead">{seite.untertitel}</p>
     <div class="faecher">
       {faecher.map((f) => (
         <FachKachel
