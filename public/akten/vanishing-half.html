@@ -26,7 +26,18 @@ html.eingebettet .tile.first,html.eingebettet .tile.reader{border-color:color-mi
 const mq=matchMedia('(prefers-color-scheme: dark)');const thema=()=>{let t=null;try{t=parent.document.documentElement.getAttribute('data-theme')}catch(e){}document.documentElement.setAttribute('data-theme',t==='dark'||t==='light'?t:(mq.matches?'dark':'light'))};thema();addEventListener('DOMContentLoaded',thema);addEventListener('load',thema);mq.addEventListener('change',thema);
 const send=()=>parent.postMessage({akteHoehe:document.documentElement.scrollHeight},'*');
 addEventListener('load',()=>{send();new ResizeObserver(send).observe(document.body)});
-addEventListener('hashchange',()=>parent.postMessage({akteOben:1},'*'));}</script></head><body>
+/*scrollbruecke*/try{const P=parent,fr=frameElement,oben=()=>fr.getBoundingClientRect().top+P.scrollY,yi=()=>Math.max(0,P.scrollY-oben());
+for(const k of ['scrollY','pageYOffset'])Object.defineProperty(window,k,{get:yi,configurable:true});
+Object.defineProperty(window,'innerHeight',{get:()=>P.innerHeight,configurable:true});
+window.scrollTo=window.scroll=function(a,b){const y=a&&typeof a==='object'?a.top:b;P.scrollTo({top:oben()+(y||0),behavior:(a&&a.behavior)||'auto'})};
+window.scrollBy=function(a,b){const y=a&&typeof a==='object'?a.top:b;P.scrollBy({top:y||0,behavior:(a&&a.behavior)||'auto'})};
+const orig=Element.prototype.scrollIntoView;
+Element.prototype.scrollIntoView=function(o){for(let e=this.parentElement;e&&e!==document.body&&e!==document.documentElement;e=e.parentElement){const s=getComputedStyle(e);if(/(auto|scroll)/.test(s.overflowY)&&e.scrollHeight>e.clientHeight)return orig.call(this,o)}
+const r=this.getBoundingClientRect(),f=fr.getBoundingClientRect(),vt=f.top+r.top,abs=P.scrollY+vt,b=(o&&typeof o==='object'&&o.block)||(o===false?'end':'start');let y;
+if(b==='center')y=abs-(P.innerHeight-r.height)/2;else if(b==='end')y=abs-P.innerHeight+r.height;else if(b==='nearest'){if(vt>=0&&vt+r.height<=P.innerHeight)return;y=vt<0?abs:abs-P.innerHeight+r.height}else y=abs;
+P.scrollTo({top:Math.max(0,y),behavior:(o&&o.behavior)||'auto'})};
+P.addEventListener('scroll',()=>dispatchEvent(new Event('scroll')),{passive:true});}catch(e){}
+}</script></head><body>
 <title>Vanishing Half Dossier</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Study dossier and annotated reader for Brit Bennett's The Vanishing Half, Abitur 2028 Hessen.">
@@ -699,7 +710,7 @@ function openInReader(c,p){if(!Reader.ready){toast(`This passage is in Part ${RO
 
 /* lock screen + loading */
 function lockHTML(){return `<div class="lock"><p style="margin:0">The novel's text is not part of this page. You load <b>your own PDF</b> of <i>The Vanishing Half</i> (Riverhead, 2020, 17 chapters) once. It stays only in this browser on this device.</p>
- <a class="glink" href="https://bdebooks.com/en/books/the-vanishing-half-by-brit-bennett/#download" target="_blank" rel="noopener" style="display:inline-block;margin:.6rem 0;font:600 .95rem system-ui,sans-serif;color:var(--accent)">The Vanishing Half PDF ↗</a>
+ <a class="glink" href="https://bdebooks.com/en/books/the-vanishing-half-by-brit-bennett/read/#pdf&page=1" target="_blank" rel="noopener" style="display:inline-block;margin:.6rem 0;font:600 .95rem system-ui,sans-serif;color:var(--accent)">The Vanishing Half PDF ↗</a>
  <label class="drop" id="drop" for="file"><b style="font-family:var(--f-display);font-weight:400;font-size:1.3rem">Choose your PDF</b><span class="muted" style="font-size:.88rem">or drop it here · nothing is uploaded anywhere</span></label>
  <input type="file" id="file" accept="application/pdf,.pdf" hidden>
  <div class="progress" hidden id="prog"><i></i></div><div id="msg" class="ui" aria-live="polite"></div>

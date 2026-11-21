@@ -26,7 +26,18 @@ html.eingebettet .tile.first,html.eingebettet .tile.reader{border-color:color-mi
 const mq=matchMedia('(prefers-color-scheme: dark)');const thema=()=>{let t=null;try{t=parent.document.documentElement.getAttribute('data-theme')}catch(e){}document.documentElement.setAttribute('data-theme',t==='dark'||t==='light'?t:(mq.matches?'dark':'light'))};thema();addEventListener('DOMContentLoaded',thema);addEventListener('load',thema);mq.addEventListener('change',thema);
 const send=()=>parent.postMessage({akteHoehe:document.documentElement.scrollHeight},'*');
 addEventListener('load',()=>{send();new ResizeObserver(send).observe(document.body)});
-addEventListener('hashchange',()=>parent.postMessage({akteOben:1},'*'));}</script><title>Kleists Krug-Akte</title>
+/*scrollbruecke*/try{const P=parent,fr=frameElement,oben=()=>fr.getBoundingClientRect().top+P.scrollY,yi=()=>Math.max(0,P.scrollY-oben());
+for(const k of ['scrollY','pageYOffset'])Object.defineProperty(window,k,{get:yi,configurable:true});
+Object.defineProperty(window,'innerHeight',{get:()=>P.innerHeight,configurable:true});
+window.scrollTo=window.scroll=function(a,b){const y=a&&typeof a==='object'?a.top:b;P.scrollTo({top:oben()+(y||0),behavior:(a&&a.behavior)||'auto'})};
+window.scrollBy=function(a,b){const y=a&&typeof a==='object'?a.top:b;P.scrollBy({top:y||0,behavior:(a&&a.behavior)||'auto'})};
+const orig=Element.prototype.scrollIntoView;
+Element.prototype.scrollIntoView=function(o){for(let e=this.parentElement;e&&e!==document.body&&e!==document.documentElement;e=e.parentElement){const s=getComputedStyle(e);if(/(auto|scroll)/.test(s.overflowY)&&e.scrollHeight>e.clientHeight)return orig.call(this,o)}
+const r=this.getBoundingClientRect(),f=fr.getBoundingClientRect(),vt=f.top+r.top,abs=P.scrollY+vt,b=(o&&typeof o==='object'&&o.block)||(o===false?'end':'start');let y;
+if(b==='center')y=abs-(P.innerHeight-r.height)/2;else if(b==='end')y=abs-P.innerHeight+r.height;else if(b==='nearest'){if(vt>=0&&vt+r.height<=P.innerHeight)return;y=vt<0?abs:abs-P.innerHeight+r.height}else y=abs;
+P.scrollTo({top:Math.max(0,y),behavior:(o&&o.behavior)||'auto'})};
+P.addEventListener('scroll',()=>dispatchEvent(new Event('scroll')),{passive:true});}catch(e){}
+}</script><title>Kleists Krug-Akte</title>
 <meta name="description" content="Lernakte zu Kleists „Der zerbrochne Krug“ für das Abitur in Hessen">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
