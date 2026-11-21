@@ -2,7 +2,7 @@
 import Basis from '../../layouts/Basis.astro';
 import Kachel from '../../components/Kachel.astro';
 import { alleFaecher, alleThemen, url } from '../../lib/inhalt';
-import { artLabel } from '../../design/seite';
+import { artLabel, abiturerlass } from '../../design/seite';
 import { loeseFarbe } from '../../design/farben';
 
 export async function getStaticPaths() {
@@ -25,6 +25,12 @@ const themen = await alleThemen(fach.slug);
 >
   <h1>{fach.data.titel}</h1>
   {fach.data.beschreibung && <p class="lead">{fach.data.beschreibung}</p>}
+  <ul class="fach-links grundlagen">
+    {fach.data.kerncurriculum && (
+      <li><a href={fach.data.kerncurriculum} target="_blank" rel="noopener">Kerncurriculum <span class="pdf">PDF</span></a></li>
+    )}
+    <li><a href={abiturerlass.href} target="_blank" rel="noopener" title={abiturerlass.stand}>{abiturerlass.titel} <span class="pdf">PDF</span></a></li>
+  </ul>
   <div class="kacheln klein">
     {themen.map((t) => (
       <Kachel

@@ -1,5 +1,6 @@
 ---
 titel: Biologie
-farbe: '#15803d'
+farbe: '#16a34a'
 reihenfolge: 4
+kerncurriculum: 'https://kultus.hessen.de/sites/kultus.hessen.de/files/2025-10/kerncurriculum_gymnasiale_oberstufe-biologie.pdf'
 ---

@@ -1,0 +1,27 @@
+---
+// Ausklappbarer Fachbegriff im Fließtext:
+// <Begriff def="Definition …" erkl="Erklärung …" erlaeut="Erläuterung/Beispiel …">Fachwort</Begriff>
+// def + erkl sind Pflicht, erlaeut optional. Fachwort ohne Leerzeilen schreiben.
+interface Props {
+  def: string;
+  erkl: string;
+  erlaeut?: string;
+}
+const { def, erkl, erlaeut } = Astro.props;
+---
+<span class="begriff" data-begriff><button type="button" class="begriff-wort" aria-expanded="false"><slot /></button><span class="begriff-erkl" role="note" hidden>
+    <span class="begriff-teil"><b>Definition:</b> {def}</span>
+    <span class="begriff-teil"><b>Erklärung:</b> {erkl}</span>
+    {erlaeut && <span class="begriff-teil"><b>Erläuterung:</b> {erlaeut}</span>}
+  </span></span>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-begriff]').forEach((el) => {
+    const knopf = el.querySelector<HTMLButtonElement>('.begriff-wort')!;
+    const erkl = el.querySelector<HTMLElement>('.begriff-erkl')!;
+    knopf.addEventListener('click', () => {
+      const auf = erkl.hidden;
+      erkl.hidden = !auf;
+      knopf.setAttribute('aria-expanded', String(auf));
+    });
+  });
+</script>

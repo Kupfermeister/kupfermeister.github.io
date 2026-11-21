@@ -1,25 +1,39 @@
 ---
-// Startseite: nur Fach-Kacheln. Fächer ohne Themen werden angezeigt, sind aber nicht klickbar.
+// Startseite: Menü aus Fach-Kacheln. Fächer ohne Themen werden angezeigt, sind aber nicht klickbar.
 import Basis from '../layouts/Basis.astro';
-import Kachel from '../components/Kachel.astro';
+import FachKachel from '../components/FachKachel.astro';
 import { alleFaecher, alleThemen, url } from '../lib/inhalt';
 import { seite } from '../design/seite';
 
 const faecher = await alleFaecher();
 const themen = await alleThemen();
-const hatThemen = (f: string) => themen.some((t) => t.fach === f);
+const anzahl = (f: string) => themen.filter((t) => t.fach === f).length;
 ---
-<Basis titel={seite.name} ohneRahmen>
-  <h1 class="unsichtbar">{seite.name}</h1>
-  <div class="kacheln">
-    {faecher.map((f) => (
-      <Kachel
-        href={hatThemen(f.slug) ? url(`${f.slug}/`) : undefined}
-        titel={f.data.titel}
-        text={f.data.beschreibung}
-        kuerzel={f.data.kuerzel}
-        farbe={f.data.farbe}
-      />
-    ))}
-  </div>
+<Basis titel={seite.name}>
+  <section class="start">
+    <h1>{seite.name}</h1>
+    <p class="lead">{seite.untertitel}</p>
+    <div class="faecher">
+      {faecher.map((f) => (
+        <FachKachel
+          href={anzahl(f.slug) ? url(`${f.slug}/`) : undefined}
+          titel={f.data.titel}
+          text={f.data.beschreibung}
+          farbe={f.data.farbe}
+          anzahl={anzahl(f.slug)}
+          kerncurriculum={f.data.kerncurriculum}
+        />
+      ))}
+    </div>
+  </section>
+  <script>
+    // Lichtpunkt folgt der Maus (nur Optik)
+    document.querySelectorAll<HTMLElement>('[data-fach]').forEach((el) => {
+      el.addEventListener('pointermove', (e) => {
+        const r = el.getBoundingClientRect();
+        el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+        el.style.setProperty('--my', `${e.clientY - r.top}px`);
+      });
+    });
+  </script>
 </Basis>

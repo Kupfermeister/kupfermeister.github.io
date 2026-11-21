@@ -10,8 +10,9 @@ const faecher = defineCollection({
     titel: z.string(),
     beschreibung: z.string().default(''),
     kuerzel: z.string().max(3).default(''),
-    farbe: z.string().default('#64748b'),
+    farbe: z.string().default('#64748b'), // grau, falls keine Farbe gesetzt
     reihenfolge: z.number().default(100),
+    kerncurriculum: z.string().url().optional(), // PDF des gültigen KCGO (Hessen, Abitur 2028)
   }),
 });
 

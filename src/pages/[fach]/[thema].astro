@@ -3,6 +3,7 @@ import { render } from 'astro:content';
 import Basis from '../../layouts/Basis.astro';
 import F from '../../components/F.astro';
 import Kasten from '../../components/Kasten.astro';
+import Begriff from '../../components/Begriff.astro';
 import { alleFaecher, alleThemen, url } from '../../lib/inhalt';
 import { artLabel } from '../../design/seite';
 import { loeseFarbe } from '../../design/farben';
@@ -33,6 +34,6 @@ const label = artLabel[thema.data.art];
     {label && <p class="art">{label}</p>}
     <h1>{thema.data.titel}</h1>
     {thema.data.beschreibung && <p class="lead">{thema.data.beschreibung}</p>}
-    <Content components={{ F, Kasten }} />
+    <Content components={{ F, Kasten, Begriff }} />
   </article>
 </Basis>

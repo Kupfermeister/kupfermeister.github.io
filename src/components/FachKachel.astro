@@ -1,0 +1,32 @@
+---
+// Große Fach-Kachel für die Startseite.
+// Ganze Kachel ist klickbar (über den Titel-Link), die PDF-Links liegen darüber und bleiben eigenständig.
+// Ohne href: Fach hat noch keine Themen → sichtbar, aber nicht klickbar.
+import { abiturerlass } from '../design/seite';
+
+interface Props {
+  href?: string;
+  titel: string;
+  text?: string;
+  farbe: string;
+  anzahl: number;
+  kerncurriculum?: string;
+}
+const { href, titel, text, farbe, anzahl, kerncurriculum } = Astro.props;
+const zaehler =
+  anzahl === 0 ? 'noch keine Themen' : anzahl === 1 ? '1 Thema' : `${anzahl} Themen`;
+---
+<article class:list={['fach', { inaktiv: !href }]} style={`--k:${farbe}`} data-fach>
+  <span class="fach-zeichen" aria-hidden="true">{titel.slice(0, 1)}</span>
+  <h2 class="fach-titel">
+    {href ? <a href={href}>{titel}</a> : titel}
+  </h2>
+  <p class="fach-anzahl">{zaehler}</p>
+  {text && <p class="fach-text">{text}</p>}
+  <ul class="fach-links">
+    {kerncurriculum && (
+      <li><a href={kerncurriculum} target="_blank" rel="noopener">Kerncurriculum <span class="pdf">PDF</span></a></li>
+    )}
+    <li><a href={abiturerlass.href} target="_blank" rel="noopener" title={`${abiturerlass.titel} (${abiturerlass.stand})`}>Abiturerlass 2028 <span class="pdf">PDF</span></a></li>
+  </ul>
+</article>

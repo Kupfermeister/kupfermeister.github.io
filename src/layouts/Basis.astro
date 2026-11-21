@@ -27,7 +27,7 @@ const voll = titel === seite.name ? titel : `${titel} · ${seite.name}`;
   <body style={akzent ? `--akzent:${akzent}` : undefined}>
     {!ohneRahmen && <header class="kopf">
       <div class="breite">
-        <a class="marke" href={url()}>{seite.name}</a>
+        <a class="marke" href={url()}>{seite.start}</a>
         <nav class="pfad" aria-label="Pfad">
           {pfad.map((p) => (
             <>

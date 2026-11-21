@@ -93,6 +93,81 @@ h3 { font-size: 1.1rem; margin: 1.6rem 0 0.4rem; }
 .unsichtbar { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .leer { color: var(--leise); padding: 2rem; border: 1px dashed var(--linie); border-radius: var(--radius); text-align: center; }
 
+/* Startseite: Fach-Menü */
+@property --winkel { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@property --glanz { syntax: '<percentage>'; initial-value: 0%; inherits: false; }
+
+.start {
+  min-height: calc(100svh - 3.5rem - 5rem);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center;
+}
+.start .lead { margin-bottom: 2.5rem; }
+.faecher {
+  width: 100%; max-width: 64rem;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 1.25rem; text-align: left;
+}
+.fach {
+  --k: #64748b;
+  --ton: color-mix(in oklab, var(--k) 9%, var(--hg));
+  position: relative; isolation: isolate;
+  display: flex; flex-direction: column; gap: 0.25rem;
+  min-height: 14rem; padding: 1.5rem 1.5rem 1.25rem;
+  border: 2px solid transparent; border-radius: 18px;
+  background:
+    radial-gradient(22rem circle at var(--mx, 50%) var(--my, 0%), color-mix(in oklab, var(--k) var(--glanz), transparent), transparent 70%) padding-box,
+    linear-gradient(var(--ton), var(--ton)) padding-box,
+    conic-gradient(from var(--winkel), color-mix(in oklab, var(--k) 35%, var(--linie)), var(--k), color-mix(in oklab, var(--k) 35%, var(--linie)) 40%, color-mix(in oklab, var(--k) 35%, var(--linie))) border-box;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+  transition: transform 0.35s cubic-bezier(.2,.8,.2,1), box-shadow 0.35s, opacity 0.3s, --glanz 0.35s, filter 0.3s;
+}
+.fach:not(.inaktiv):hover, .fach:not(.inaktiv):focus-within {
+  --glanz: 22%;
+  transform: translateY(-6px) scale(1.015);
+  box-shadow: 0 18px 40px -18px color-mix(in oklab, var(--k) 70%, transparent);
+  animation: kreisen 3s linear infinite;
+}
+@keyframes kreisen { to { --winkel: 360deg; } }
+/* Beim Zeigen auf eine Kachel treten die anderen zurück */
+.faecher:has(.fach:not(.inaktiv):hover) .fach:not(:hover) { opacity: 0.6; filter: saturate(0.6); }
+
+.fach-zeichen {
+  display: grid; place-items: center; width: 3.2rem; height: 3.2rem; margin-bottom: 0.9rem;
+  border-radius: 14px; font-size: 1.5rem; font-weight: 800;
+  background: color-mix(in oklab, var(--k) 22%, var(--hg));
+  border: 1px solid color-mix(in oklab, var(--k) 55%, transparent);
+  color: var(--text);
+  transition: transform 0.45s cubic-bezier(.3,1.6,.5,1);
+}
+.fach:not(.inaktiv):hover .fach-zeichen { transform: rotate(-8deg) scale(1.12); }
+.fach-titel { margin: 0; font-size: 1.45rem; letter-spacing: -0.015em; }
+.fach-titel a { text-decoration: none; }
+.fach-titel a::after { content: ''; position: absolute; inset: 0; border-radius: inherit; z-index: 1; } /* ganze Kachel klickbar */
+.fach-titel a:focus-visible { outline: none; }
+.fach:focus-within:has(.fach-titel a:focus-visible) { outline: 3px solid var(--k); outline-offset: 3px; }
+.fach-anzahl { margin: 0; color: var(--leise); font-size: 0.95rem; font-weight: 550; }
+.fach-text { margin: 0.4rem 0 0; color: var(--leise); font-size: 0.95rem; line-height: 1.45; }
+.fach.inaktiv { cursor: default; }
+.fach.inaktiv .fach-titel { color: var(--leise); }
+
+.fach-links { list-style: none; margin: 0; padding: 1rem 0 0; display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.fach .fach-links { margin-top: auto; position: relative; z-index: 2; } /* über dem Kachel-Link */
+.fach-links a {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.3rem 0.65rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600; text-decoration: none;
+  border: 1px solid var(--linie); background: var(--hg); color: var(--text);
+  transition: border-color 0.2s, background 0.2s;
+}
+.fach-links a:hover { border-color: var(--k, var(--akzent)); background: color-mix(in oklab, var(--k, var(--akzent)) 12%, var(--hg)); }
+.fach-links .pdf { font-size: 0.68rem; letter-spacing: 0.05em; color: var(--leise); }
+.fach-links.grundlagen { padding: 0.4rem 0 1.75rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fach, .fach-zeichen { transition: none; }
+  .fach:not(.inaktiv):hover, .fach:not(.inaktiv):focus-within { animation: none; transform: none; }
+}
+
 /* Inhaltsseiten */
 .inhalt { max-width: 46rem; }
 .inhalt.breit { max-width: none; }
@@ -104,6 +179,25 @@ h3 { font-size: 1.1rem; margin: 1.6rem 0 0.4rem; }
 
 /* Bedeutungsfarben (Klassen .f-* entstehen aus src/design/farben.ts) */
 .f { font-weight: 600; }
+
+/* Ausklappbare Fachbegriffe (<Begriff>) */
+.begriff-wort {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer;
+  text-decoration: underline dotted color-mix(in oklab, var(--akzent) 70%, transparent);
+  text-decoration-thickness: 2px; text-underline-offset: 0.2em;
+}
+.begriff-wort:hover, .begriff-wort[aria-expanded='true'] { color: var(--akzent); text-decoration-style: solid; }
+.begriff-erkl {
+  display: block; margin: 0.4rem 0 0.6rem; padding: 0.7rem 0.95rem;
+  border-left: 3px solid var(--akzent); border-radius: 0 var(--radius) var(--radius) 0;
+  background: color-mix(in oklab, var(--akzent) 7%, var(--flaeche));
+  font-size: 0.95rem; line-height: 1.55;
+  transition: opacity 0.25s, translate 0.25s;
+  @starting-style { opacity: 0; translate: 0 -4px; }
+}
+.begriff-erkl[hidden] { display: none; }
+.begriff-teil { display: block; }
+.begriff-teil + .begriff-teil { margin-top: 0.35rem; }
 
 /* Kästen */
 .kasten {
