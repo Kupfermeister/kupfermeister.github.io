@@ -247,6 +247,8 @@ q.vq::after{content:close-quote " " attr(data-ref);font:500 .68rem/1 var(--f-mon
 .text h2{font-size:2rem;margin:26px 0 4px}
 .text .chhead{display:grid;gap:4px;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--rule)}
 .text p{margin:0 0 .9em;position:relative;transition:opacity .2s}
+.text .cz{position:absolute;right:-6.2rem;top:.35em;width:5.6rem;font:500 .68rem/1.2 var(--f-mono);color:var(--ink3);white-space:nowrap}
+@media (max-width: 1100px){.text .cz{position:static;display:block;width:auto;margin-bottom:2px}}
 .text p.br{text-align:center;color:var(--ink3);margin:1.4em 0}
 .text p.dlg{padding-left:12px;border-left:3px solid var(--spk,var(--rule));margin-left:-15px}
 .text p.chorus{font-style:italic;color:color-mix(in srgb,var(--ink) 82%,var(--accent));box-shadow:inset 2px 0 0 color-mix(in srgb,var(--accent) 40%,transparent);padding-left:12px;margin-left:-14px}
@@ -627,12 +629,30 @@ function paraHTML(t,lab,ci,pi){
 function sections(n){const ps=Reader.model[n-1].paras;const out=[];let start=0;
  const push=st=>{const f=ps.slice(st).find(p=>p.k!=="br");if(!f)return;const w=f.t.replace(/^[\u201C"]+/,"").split(/\s+/).slice(0,6).join(" ");out.push({i:st,label:w.length>40?w.slice(0,40)+"…":(/[.!?”]$/.test(w)?w:w+"…")})};
  push(0);ps.forEach((p,i)=>{if(p.k==="br")push(i+1)});return out}
+/* page/line numbers of the Cornelsen edition (ISBN 978-3-06-036531-9): simulated typesetting (67 chars/line) between checked anchors */
+const CORN={S:[9,39,61,85,106,126,147,165,184,205,219,234,242,263,281,301,325],E:[37.5,59.5,81.5,104.5,124.5,143.5,163.5,182.5,201.5,217.5,232.5,240.5,259.5,279.5,298.5,323.5,341+18/31],
+ A:{1:[[56,387,20],[64,264,21]],15:[[41,0,286],[47,587,287]],17:[[140,0,340],[144,0,341]]},cache:{}};
+function cornLines(ch){const out=[];let afterBr=true;const W=67,IND=3;
+ ch.paras.forEach((p,pi)=>{if(p.k==="br"){out.push({pi,off:0,blank:1});afterBr=true;return}
+  const words=p.t.split(" ");let pos=0,cur=afterBr?0:IND,start=0,first=true;
+  for(const w of words){if(cur===0||(cur===IND&&first)){cur+=w.length;pos+=w.length+1;first=false;continue}
+   if(cur+1+w.length<=W){cur+=1+w.length;pos+=w.length+1;continue}
+   const room=W-cur-2;if(w.length>=6&&room>=3&&w.length-room>=2&&/^[a-z]/i.test(w)){out.push({pi,off:start});start=pos+room;cur=w.length-room;pos+=w.length+1;continue}
+   out.push({pi,off:start});start=pos;cur=w.length;pos+=w.length+1}
+  out.push({pi,off:start});afterBr=false});return out}
+function cornMap(n){if(CORN.cache[n])return CORN.cache[n];const L=cornLines(Reader.model[n-1]);
+ const idx=(pi,off)=>{let k=0;for(let i=0;i<L.length;i++){if(L[i].pi<pi||(L[i].pi===pi&&L[i].off<=off))k=i}return k};
+ const pts=[[0,CORN.S[n-1]+1/31],...(CORN.A[n]||[]).map(a=>[idx(a[0],a[1]),a[2]]),[L.length,CORN.E[n-1]]];
+ const pos=i=>{let j=0;while(j<pts.length-2&&i>=pts[j+1][0])j++;const [a,pa]=pts[j],[b,pb]=pts[j+1];return pa+(i-a)/(b-a)*(pb-pa)};
+ const first={};let lastPg=0,ln=0;L.forEach((l,i)=>{const pg=Math.floor(pos(i)+1e-9);if(pg!==lastPg){lastPg=pg;ln=0}if(!l.blank)ln++;if(!(l.pi in first))first[l.pi]={pg,ln}});
+ return CORN.cache[n]=first}
+function cornRef(n,i){try{const x=cornMap(n)[i];return x?`p. ${x.pg}, l. ${x.ln}`:""}catch(e){return ""}}
 function renderChapter(n){const ch=Reader.model[n-1];const lab=D.labels[n-1];let bad=0;const chorus=new Set(D.chorus[n]||[]);
  let h=`<div class="chhead"><span class="eyebrow">Part ${ROMAN[ch.part]} · ${esc(C.parts[ch.part-1].title)} · Chapter ${n}</span><h2>${["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen"][n]}</h2><span class="ui muted" style="font-size:.86rem">${chap(n).now}${n===17?" (approx.)":""} · ${esc(chap(n).where)} · our label: ${esc(chap(n).label)}</span><span class="chips" style="margin-top:8px"><button class="chip" type="button" data-x='${JSON.stringify({v:"chapters",o:"ch-"+n})}'>Chapter guide</button><button class="chip" type="button" data-x='${JSON.stringify({v:"timeline"})}'>Timeline</button>${MAINS.filter(k=>(D.presence[n-1][k]||0)>=40).map(k=>`<button class="chip" type="button" data-x='${JSON.stringify({v:"characters",per:k})}'><span class="dot" style="background:${cv(k)}"></span>${NAME[k]}</button>`).join("")}</span></div>`;
  ch.paras.forEach((p,i)=>{if(p.k==="br"){const S=sections(n);const k=S.findIndex(x=>x.i===i+1);h+=`<p class="br secbar" data-i="${i}" data-has="1" id="sec-${k+1}"><span>&#8212;</span><span class="mono">§ ${k+1} of ${S.length}</span><span class="secy" style="background:${secFill(n,k)}"></span><span class="mono">${esc(secT(n,k)[1])}</span><span>&#8212;</span></p>`;return}
   const r=paraHTML(p.t,lab[i],n,i);if(!r.ok&&lab[i])bad++;const f=Reader.focus;const hasF=f?r.has.has(f):true;
   const rf=(D.refs[n+":"+i]||[]).length+(chorus.has(i)?1:0);
-  h+=`<p data-i="${i}" data-has="${hasF?1:0}" class="${r.spk?"dlg":""} ${chorus.has(i)?"chorus":""}"${r.spk?` style="--spk:${cv(r.spk)}"`:""}>${rf?`<button class="pm" type="button" data-pm="${i}" aria-label="Used in ${rf} study note(s)">${rf}</button>`:""}${r.html}</p>`});
+  h+=`<p data-i="${i}" data-has="${hasF?1:0}" class="${r.spk?"dlg":""} ${chorus.has(i)?"chorus":""}"${r.spk?` style="--spk:${cv(r.spk)}"`:""}>${rf?`<button class="pm" type="button" data-pm="${i}" aria-label="Used in ${rf} study note(s)">${rf}</button>`:""}<span class="cz" title="Page and line in the Cornelsen edition (calculated, ≈ ±1 line)">${cornRef(n,i)}</span>${r.html}</p>`});
  if(bad)h+=`<p class="ui muted" style="font-size:.8rem">${bad} paragraph(s) in this chapter could not be matched exactly; they are shown without pronoun colours.</p>`;
  return h}
 
