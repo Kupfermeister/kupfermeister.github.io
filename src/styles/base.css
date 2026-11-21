@@ -1,3 +1,4 @@
+@font-face { font-family: 'Lernfraktur'; src: url('/schriften/Lernfraktur.otf') format('opentype'); font-display: swap; }
 /* Grunddesign – schlicht, für alle Seiten gleich.
    Farben nur über diese Tokens, nie direkt in Seiten. */
 :root {
@@ -14,6 +15,7 @@
   --tipp: #b45309;
   --radius: 10px;
   --schrift: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fraktur: 'Lernfraktur', var(--schrift);
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -153,7 +155,7 @@ h3 { font-size: 1.1rem; margin: 1.6rem 0 0.4rem; }
 .fach-links { list-style: none; margin: 0; padding: 1rem 0 0; display: flex; flex-wrap: wrap; gap: 0.45rem; }
 .fach .fach-links { margin-top: auto; position: relative; z-index: 2; } /* über dem Kachel-Link */
 .fach-links a {
-  --pdf: color-mix(in oklab, var(--k, var(--akzent)) 60%, var(--leise));
+  --pdf: var(--k, var(--akzent));
   display: inline-flex; align-items: center; gap: 0.35rem;
   padding: 0.3rem 0.65rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600; text-decoration: none;
   border: 1px solid color-mix(in oklab, var(--pdf) 45%, var(--linie)); background: var(--hg); color: var(--pdf);
@@ -233,3 +235,8 @@ label { color: var(--leise); font-size: 0.95rem; }
 
 .bildnachweis { margin: 2.5rem 0 0; max-width: 64rem; font-size: 0.72rem; line-height: 1.5; color: var(--leise); }
 .bildnachweis a { color: inherit; }
+/* Schwache Texte in Kacheln: Fachfarbe, leicht transparent statt grau */
+.fach, .kachel { --leise: color-mix(in oklab, var(--k) 72%, transparent); }
+
+/* Eigene Breitfeder-Fraktur (werkzeuge/lernfraktur.cjs → public/schriften) */
+.marke, h1 { font-family: var(--fraktur); font-weight: 400; letter-spacing: 0; }
