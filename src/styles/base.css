@@ -18,9 +18,9 @@
   --schrift: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --fraktur: 'Lernfraktur', var(--schrift);
   --titelschrift: var(--schrift); /* Start, Seiten- und Kacheltitel – eine schlichte Schrift für alles (Alternativen: 'Potsdam', var(--fraktur)) */
-  color-scheme: light dark;
+  color-scheme: dark;
 }
-@media (prefers-color-scheme: dark) {
+@media all { /* Seite ist immer dunkel */
   :root {
     --hg: #121417;
     --flaeche: #1b1e23;
