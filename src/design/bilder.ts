@@ -1,7 +1,7 @@
 // Hintergrundbilder der Fach-Kacheln (Dateien: public/bilder/<fach>.jpg, Quelle: Wikimedia Commons).
 // Motive: ikonische Ereignisse, Werke, Symbole, Strukturen – keine Porträts.
 // Neues Bild: Datei ablegen, Eintrag mit Titel, Urheber, Lizenz und Commons-Link ergänzen.
-type Bild = { titel: string; urheber: string; lizenz: string; quelle: string; position?: string };
+type Bild = { titel: string; urheber: string; lizenz: string; quelle: string; position?: string; negativ?: boolean };
 const c = (datei: string) => `https://commons.wikimedia.org/wiki/File:${datei}`;
 export const bilder: Record<string, Bild> = {
   biologie: { titel: 'Photo 51 – Röntgenbeugungsbild der DNA (Nachbildung)', urheber: 'Emily Willoughby', lizenz: 'CC0', quelle: c('60251254_photo-51-print-qp867-a4_2.jpg') },
@@ -11,7 +11,7 @@ export const bilder: Record<string, Bild> = {
   ethik: { titel: 'Kant, Grundlegung zur Metaphysik der Sitten (1785)', urheber: 'Immanuel Kant', lizenz: 'gemeinfrei', quelle: c('Kant_Groundwork_Title.jpg') },
   geschichte: { titel: 'Brandenburger Tor', urheber: 'Thomas Wolf, www.foto-tw.de', lizenz: 'CC BY-SA 3.0', quelle: c('Brandenburger_Tor_nachts.jpg') },
   kunst: { titel: 'Sternennacht', urheber: 'Vincent van Gogh', lizenz: 'gemeinfrei', quelle: c('Vincent_van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg') },
-  mathe: { titel: 'Galtonbrett (Normalverteilung)', urheber: 'Estes Objethos Atelier', lizenz: 'CC BY-SA 4.0', quelle: c('Tabuleiros_de_Galton_(antes_e_depois).jpg') },
+  mathe: { titel: 'Integral als Fläche unter der Kurve', urheber: '4C', lizenz: 'CC BY-SA 3.0', quelle: c('Integral_as_region_under_curve.svg'), negativ: true },
   physik: { titel: 'Blasenkammer Gargamelle, leptonisches Ereignis', urheber: 'CERN', lizenz: 'CC BY 4.0', quelle: c('Leptonic_event_in_Gargamelle_bubble_chamber.jpg') },
   politik: { titel: 'Reichstagskuppel', urheber: 'Ank Kumar', lizenz: 'CC BY-SA 4.0', quelle: c('Reichstag_Dome,_Berlin_(Ank_Kumar)_04.jpg') },
 };

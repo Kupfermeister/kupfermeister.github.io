@@ -8,7 +8,7 @@ const { fach } = Astro.props;
 const bild = bilder[fach];
 ---
 {bild && (
-  <div class="fach-bild" aria-hidden="true">
+  <div class:list={['fach-bild', { negativ: bild.negativ }]} aria-hidden="true">
     <img src={url(`bilder/${fach}.jpg`)} alt="" loading="lazy" decoding="async" style={bild.position && `object-position:${bild.position}`} />
   </div>
 )}

@@ -240,3 +240,4 @@ label { color: var(--leise); font-size: 0.95rem; }
 
 /* Eigene Breitfeder-Fraktur (werkzeuge/lernfraktur.cjs → public/schriften) */
 .marke, h1 { font-family: var(--fraktur); font-weight: 400; letter-spacing: 0; }
+.fach-bild.negativ img { filter: grayscale(1) invert(1) contrast(1.1); } /* helle Vorlagen (weißer Grund) als Negativ */
