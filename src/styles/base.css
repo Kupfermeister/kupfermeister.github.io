@@ -1,3 +1,4 @@
+@font-face { font-family: 'Potsdam'; src: url('/schriften/Potsdam.ttf') format('truetype'); font-display: swap; } /* Dieter Steffmann, Freeware */
 @font-face { font-family: 'Lernfraktur'; src: url('/schriften/Lernfraktur.otf') format('opentype'); font-display: swap; }
 /* Grunddesign – schlicht, für alle Seiten gleich.
    Farben nur über diese Tokens, nie direkt in Seiten. */
@@ -16,6 +17,7 @@
   --radius: 10px;
   --schrift: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --fraktur: 'Lernfraktur', var(--schrift);
+  --titelschrift: 'Potsdam', var(--fraktur); /* Start, Seiten- und Kacheltitel */
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -239,6 +241,6 @@ label { color: var(--leise); font-size: 0.95rem; }
 .fach, .kachel { --leise: color-mix(in oklab, var(--k) 72%, transparent); }
 
 /* Eigene Breitfeder-Fraktur (werkzeuge/lernfraktur.cjs → public/schriften) */
-.marke, h1 { font-family: var(--fraktur); font-weight: 400; letter-spacing: 0; }
+.marke, h1, .fach-titel { font-family: var(--titelschrift); font-weight: 400; letter-spacing: 0; }
 .fach-bild.negativ { background: #000; } /* transparente Flächen = invertiertes Weiß */
 .fach-bild.negativ img { filter: grayscale(1) invert(1) contrast(1.1); } /* helle Vorlagen als Negativ statt abgedunkelt */

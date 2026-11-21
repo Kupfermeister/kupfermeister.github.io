@@ -1,3 +1,5 @@
 Lernfraktur – eigene, per Skript mit simulierter Breitfeder (40°) gezeichnete Frakturschrift.
 Frei nutzbar unter der SIL Open Font License 1.1 (https://openfontlicense.org).
 Neu erzeugen: node werkzeuge/lernfraktur.cjs public/schriften/Lernfraktur.otf
+
+Potsdam.ttf – Schrift "Potsdam" von Dieter Steffmann, Freeware (Quelle: dafont.com/potsdam.font).
