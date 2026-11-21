@@ -29,7 +29,7 @@ const themen = await alleThemen(fach.slug);
     {fach.data.kerncurriculum && (
       <li><a href={fach.data.kerncurriculum} target="_blank" rel="noopener">Kerncurriculum <span class="pdf">PDF</span></a></li>
     )}
-    <li><a href={abiturerlass.href} target="_blank" rel="noopener" title={abiturerlass.stand}>{abiturerlass.titel} <span class="pdf">PDF</span></a></li>
+    <li><a href={abiturerlass.href + (fach.data.erlassSeite ? `#page=${fach.data.erlassSeite}` : "")} target="_blank" rel="noopener" title={abiturerlass.stand}>{abiturerlass.titel} <span class="pdf">PDF</span></a></li>
   </ul>
   <div class="kacheln klein">
     {themen.map((t) => (

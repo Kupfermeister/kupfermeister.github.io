@@ -22,6 +22,7 @@ const anzahl = (f: string) => themen.filter((t) => t.fach === f).length;
           farbe={f.data.farbe}
           anzahl={anzahl(f.slug)}
           kerncurriculum={f.data.kerncurriculum}
+          erlassSeite={f.data.erlassSeite}
         />
       ))}
     </div>

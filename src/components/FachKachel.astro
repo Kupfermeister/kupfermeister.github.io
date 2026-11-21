@@ -13,8 +13,10 @@ interface Props {
   anzahl: number;
   kerncurriculum?: string;
   fach?: string;
+  erlassSeite?: number;
 }
-const { href, titel, text, farbe, anzahl, kerncurriculum, fach = '' } = Astro.props;
+const { href, titel, text, farbe, anzahl, kerncurriculum, fach = '', erlassSeite } = Astro.props
+const erlass = abiturerlass.href + (erlassSeite ? `#page=${erlassSeite}` : '');
 const zaehler =
   anzahl === 0 ? 'noch keine Themen' : anzahl === 1 ? '1 Thema' : `${anzahl} Themen`;
 ---
@@ -30,6 +32,6 @@ const zaehler =
     {kerncurriculum && (
       <li><a href={kerncurriculum} target="_blank" rel="noopener">Kerncurriculum <span class="pdf">PDF</span></a></li>
     )}
-    <li><a href={abiturerlass.href} target="_blank" rel="noopener" title={`${abiturerlass.titel} (${abiturerlass.stand})`}>Abiturerlass 2028 <span class="pdf">PDF</span></a></li>
+    <li><a href={erlass} target="_blank" rel="noopener" title={`${abiturerlass.titel} (${abiturerlass.stand})`}>Abiturerlass 2028 <span class="pdf">PDF</span></a></li>
   </ul>
 </article>

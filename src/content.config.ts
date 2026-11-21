@@ -12,6 +12,7 @@ const faecher = defineCollection({
     kuerzel: z.string().max(3).default(''),
     farbe: z.string().default('#64748b'), // grau, falls keine Farbe gesetzt
     reihenfolge: z.number().default(100),
+    erlassSeite: z.number().optional(), // Seite des Fachs im Abiturerlass-PDF (Sprung per #page=)
     kerncurriculum: z.string().url().optional(), // PDF des gültigen KCGO (Hessen, Abitur 2028)
   }),
 });
