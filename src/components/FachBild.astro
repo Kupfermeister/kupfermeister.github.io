@@ -1,119 +1,14 @@
 ---
-// Dezentes Hintergrundbild einer Fach-Kachel. Farbe: currentColor (Fachfarbe, gesetzt in base.css).
-// Fächer ohne Eintrag bekommen kein Bild.
+// Hintergrundfoto einer Fach-Kachel (public/bilder/<fach>.jpg), in der Fachfarbe eingefärbt (base.css: .fach-bild).
+// Quellen und Lizenzen: src/design/bilder.ts
+import { bilder } from '../design/bilder';
+import { url } from '../lib/inhalt';
 interface Props { fach: string }
 const { fach } = Astro.props;
-
-// Chemie: Skelettformeln (Sechsring + Zickzack-Ketten)
-const ring = (x: number, y: number, r: number) =>
-  Array.from({ length: 6 }, (_, i) => {
-    const a = (Math.PI / 3) * i + Math.PI / 6;
-    return `${(x + r * Math.cos(a)).toFixed(1)},${(y + r * Math.sin(a)).toFixed(1)}`;
-  }).join(' ');
-const zickzack = (x: number, y: number, n: number, d = 22) =>
-  Array.from({ length: n + 1 }, (_, i) => `${x + i * d * 0.87},${y + (i % 2 ? -d / 2 : 0)}`).join(' ');
-
-// Biologie: Doppelhelix
-const helix = (phase: number) =>
-  Array.from({ length: 61 }, (_, i) => {
-    const x = i * 5;
-    return `${x},${(100 + 34 * Math.sin(x / 22 + phase)).toFixed(1)}`;
-  }).join(' ');
-
-// Physik: Feldlinien um zwei Ladungen
-const sprossen = Array.from({ length: 20 }, (_, i) => { const x = 6 + i * 15; return [x, 100 + 34 * Math.sin(x / 22), 100 + 34 * Math.sin(x / 22 + Math.PI)]; });
-const kurve1 = Array.from({ length: 55 }, (_, i) => { const x = 20 + i * 5; const t = (x - 150) / 30; return x + "," + (170 - 22 * Math.sin(t * 1.5) - 3 * t * t).toFixed(1); }).join(' ');
-const kurve2 = Array.from({ length: 40 }, (_, i) => { const x = 60 + i * 5; const t = (x - 150) / 40; return x + "," + (170 - 12 * Math.exp(t)).toFixed(1); }).join(' ');
-const elektronen = [[40, 40], [260, 50], [50, 165], [255, 160]].map(([x, y]) => [x, y, x + (150 - x) * 0.3, y + (100 - y) * 0.3]);
-const feld = Array.from({ length: 9 }, (_, i) => -64 + i * 16);
+const bild = bilder[fach];
 ---
-{fach && (
-<svg class="fach-bild" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"
-  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  {fach === 'chemie' && (
-    <g>
-      <polygon points={ring(70, 70, 26)} />
-      <polyline points={`${70 + 26 * 0.87},${70 + 13} 115,96 140,82`} />
-      <line x1="140" y1="82" x2="140" y2="58" /><text x="134" y="52" fill="currentColor" stroke="none" font-size="14">O</text>
-      <polygon points={ring(220, 120, 30)} />
-      <polygon points={ring(220 + 52, 120, 30)} />
-      <polyline points={zickzack(40, 165, 7)} />
-      <polyline points={zickzack(170, 40, 5)} />
-      <text x="250" y="44" fill="currentColor" stroke="none" font-size="14">OH</text>
-    </g>
-  )}
-  {fach === 'biologie' && (
-    <g>
-      <polyline points={helix(0)} stroke-width="3" />
-      <polyline points={helix(Math.PI)} stroke-width="3" />
-      {sprossen.map(([x, y1, y2]) => <line x1={x} y1={y1} x2={x} y2={y2} stroke-width="1.5" />)}
-      <!-- Enzym-Klumpen an der Replikationsgabel -->
-      <path d="M150 52c18-14 44-6 46 14s-14 34-34 30-30-30-12-44z" fill="currentColor" fill-opacity="0.5" />
-      <path d="M95 128c14-10 34-2 32 14s-22 22-34 14-10-20 2-28z" fill="currentColor" fill-opacity="0.5" />
-      <path d="M222 120c16-6 32 6 26 20s-26 16-34 4 0-20 8-24z" fill="currentColor" fill-opacity="0.5" />
-      <circle cx="258" cy="60" r="9" fill="currentColor" fill-opacity="0.5" />
-      <circle cx="40" cy="58" r="7" fill="currentColor" fill-opacity="0.5" />
-    </g>
-  )}
-  {fach === 'deutsch' && (
-    <g fill="currentColor" stroke="none" font-family="'UnifrakturMaguntia', 'Old English Text MT', serif" font-size="19">
-      <text x="14" y="40">Habe nun, ach! Philoſophie,</text>
-      <text x="14" y="68">Juriſterei und Medizin,</text>
-      <text x="14" y="96">Und leider auch Theologie</text>
-      <text x="14" y="124">Durchaus ſtudiert, mit heißem Bemühn.</text>
-      <text x="14" y="152">Da ſteh ich nun, ich armer Tor!</text>
-      <text x="14" y="180">Und bin ſo klug als wie zuvor.</text>
-    </g>
-  )}
-  {fach === 'englisch' && (
-    <g transform="translate(150 6) scale(0.95)">
-      <!-- Großbritannien (vereinfacht) -->
-      <path d="M58 6l14 4-6 10 12 2-4 14 10 6-10 10 8 16 12 6 4 14 10 10 6 18 16 6-2 12-20 8 10 6-18 8-26-2-14 6-22-4-20 10-14-2 14-12 16-4 10-10-8-6 12-14-2-12-14-2 2-14-10-6 6-16-10-8 4-14 10 2-2-16 8-10-8-10 10-8-4-12 14 2z" />
-      <!-- Irland -->
-      <path d="M-34 98l16-8 14 6 2 16-6 14 4 12-14 14-22 2-12-10 6-16-8-12 8-12z" />
-      <circle cx="96" cy="166" r="3" fill="currentColor" />
-    </g>
-  )}
-  {fach === 'mathe' && (
-    <g>
-      <text x="18" y="70" fill="currentColor" stroke="none" font-size="56" font-family="serif">∑</text>
-      <text x="20" y="88" fill="currentColor" stroke="none" font-size="11" font-family="serif">k=1</text>
-      <text x="30" y="20" fill="currentColor" stroke="none" font-size="11" font-family="serif">n</text>
-      <text x="70" y="56" fill="currentColor" stroke="none" font-size="22" font-family="serif" font-style="italic">k²</text>
-      <text x="150" y="44" fill="currentColor" stroke="none" font-size="22" font-family="serif">lim</text>
-      <text x="150" y="60" fill="currentColor" stroke="none" font-size="10" font-family="serif">x→∞</text>
-      <text x="190" y="44" fill="currentColor" stroke="none" font-size="20" font-family="serif" font-style="italic">(1+1/x)ˣ = e</text>
-      <line x1="20" y1="170" x2="290" y2="170" stroke-width="1.5" />
-      <line x1="150" y1="195" x2="150" y2="95" stroke-width="1.5" />
-      <polyline points={kurve1} />
-      <polyline points={kurve2} stroke-dasharray="4 4" />
-    </g>
-  )}
-  {fach === 'physik' && (
-    <g>
-      {feld.map((d) => <path d={`M95 100 C 130 ${100 + d * 1.6}, 170 ${100 + d * 1.6}, 205 100`} stroke-width="1.3" />)}
-      <circle cx="95" cy="100" r="13" />
-      <line x1="89" y1="100" x2="101" y2="100" /><line x1="95" y1="94" x2="95" y2="106" />
-      <circle cx="205" cy="100" r="13" />
-      <line x1="199" y1="100" x2="211" y2="100" />
-      <!-- Elektronen mit Kraftpfeilen -->
-      {elektronen.map(([x, y, px, py]) => <g><circle cx={x} cy={y} r="6" fill="currentColor" /><line x1={x} y1={y} x2={px} y2={py} stroke-width="2.5" /><circle cx={px} cy={py} r="2.5" fill="currentColor" /></g>)}
-      {[[150, 30], [150, 172]].map(([x, y]) => <path d={`M${x - 14} ${y}h28m-7-6l7 6-7 6`} stroke-width="2.5" />)}
-    </g>
-  )}
-  {fach === 'politik' && (
-    <g>
-      <!-- Reichstagsgebäude mit Kuppel -->
-      <path d="M30 180h240M40 180v-70h220v70" />
-      <path d="M40 110l-6-10h232l-6 10" />
-      <rect x="40" y="70" width="34" height="40" /><rect x="226" y="70" width="34" height="40" />
-      {[95, 115, 135, 155, 175, 195].map((x) => <line x1={x} y1="112" x2={x} y2="172" />)}
-      <path d="M90 104l60-24 60 24z" />
-      <path d="M120 70a30 30 0 0 1 60 0z" />
-      {[130, 140, 150, 160, 170].map((x) => <line x1={x} y1="70" x2={150 + (x - 150) * 0.3} y2="42" stroke-width="1" />)}
-      <line x1="150" y1="40" x2="150" y2="30" />
-      <path d="M150 30h18v10h-18" fill="currentColor" fill-opacity="0.4" />
-    </g>
-  )}
-</svg>
+{bild && (
+  <div class="fach-bild" aria-hidden="true">
+    <img src={url(`bilder/${fach}.jpg`)} alt="" loading="lazy" decoding="async" style={bild.position && `object-position:${bild.position}`} />
+  </div>
 )}

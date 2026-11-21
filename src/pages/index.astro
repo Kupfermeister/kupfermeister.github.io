@@ -4,6 +4,7 @@ import Basis from '../layouts/Basis.astro';
 import FachKachel from '../components/FachKachel.astro';
 import { alleFaecher, alleThemen, url } from '../lib/inhalt';
 import { seite } from '../design/seite';
+import { bilder } from '../design/bilder';
 
 const faecher = (await alleFaecher()).sort((a, b) => a.data.titel.localeCompare(b.data.titel, "de"));
 const themen = await alleThemen();
@@ -25,6 +26,7 @@ const anzahl = (f: string) => themen.filter((t) => t.fach === f).length;
         />
       ))}
     </div>
+    <p class="bildnachweis">Bilder: {Object.values(bilder).map((b, i) => <>{i > 0 && ' · '}<a href={b.quelle} target="_blank" rel="noopener">{b.titel}</a> ({b.urheber}, {b.lizenz})</>)} – Wikimedia Commons</p>
   </section>
   <script>
     // Lichtpunkt folgt der Maus (nur Optik)
