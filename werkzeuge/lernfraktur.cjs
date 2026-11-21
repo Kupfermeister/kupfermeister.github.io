@@ -1,153 +1,158 @@
-// Lernfraktur – jede Glyphe wird mit einer simulierten Breitfeder "geschrieben".
-// Federmodell: Feder = Strecke der Breite W, gehalten im Winkel ANG zur Grundlinie.
-// Jeder Strich ist ein Pfad der Federmitte; jedes Teilstück wird als Minkowski-Summe
-// (Strecke ⊕ Federkante) = Parallelogramm gefüllt. Dünn = Bewegung parallel zur Feder,
-// fett = Bewegung senkrecht dazu (Rauten an Kopf und Fuß).
+// Lernfraktur – moderne gebrochene Schrift im Stil der Schaftstiefelgrotesk (Tannenberg, Potsdam).
+// Jede Glyphe wird mit einer simulierten Feder "geschrieben": ein Strich ist der Weg der Federmitte,
+// jedes Teilstück wird als Minkowski-Summe (Strecke ⊕ Federform) = konvexe Hülle gefüllt.
+// Die Feder ist ein breites, schräg geschnittenes Parallelogramm (130 breit, 90 hoch, Schnitt steigt
+// nach rechts). Ergebnis: fast gleich fette Schäfte und Querstriche, schräg abgeschnittene Schaftenden,
+// gebrochene (abgeschrägte) Ecken statt Rundungen – die Merkmale der Schaftstiefelgrotesk.
+// Aufruf: node werkzeuge/lernfraktur.cjs public/schriften/Lernfraktur.otf
 const opentype = require('opentype.js');
-const path = require('path');
+const fs = require('fs');
+const pc = require('polygon-clipping');
 
-const W = 92, ANG = 40 * Math.PI / 180;
-const hx = Math.cos(ANG) * W / 2, hy = Math.sin(ANG) * W / 2; // ≈ 35 / 30
-const T = 470, B = 30, C = 670, A = 770, D = -220; // Federmitte für x-Höhe 500, Grundlinie 0, Versal 700, Ober 800, Unter -250
+const FEDER = [[-65, -45], [65, -15], [65, 45], [-65, 15]];
+const T = 455, B = 45, C = 655, A = 755, D = -205, Z = 605; // Federmitte für x-Höhe 500, Versal 700, Ober 800, Unter −250, Ziffer 650
 
-function parallelogramme(strich) {
+function huelle(pts) {
+  pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const kreuz = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const u = [], o = [];
+  for (const p of pts) { while (u.length >= 2 && kreuz(u[u.length - 2], u[u.length - 1], p) <= 0) u.pop(); u.push(p); }
+  for (const p of pts.slice().reverse()) { while (o.length >= 2 && kreuz(o[o.length - 2], o[o.length - 1], p) <= 0) o.pop(); o.push(p); }
+  return u.slice(0, -1).concat(o.slice(0, -1)); // gegen den Uhrzeigersinn
+}
+const zug = (strich) => {
+  if (strich.length === 1) strich = [strich[0], [strich[0][0], strich[0][1] + 1]];
   const out = [];
   for (let i = 0; i < strich.length - 1; i++) {
-    const [x0, y0] = strich[i], [x1, y1] = strich[i + 1];
-    let p = [[x0 - hx, y0 - hy], [x1 - hx, y1 - hy], [x1 + hx, y1 + hy], [x0 + hx, y0 + hy]];
-    let fl = 0; for (let k = 0; k < 4; k++) { const a = p[k], b = p[(k + 1) % 4]; fl += a[0] * b[1] - b[0] * a[1]; }
-    if (Math.abs(fl) < 1) continue;
-    if (fl < 0) p.reverse(); // alle Konturen gegen den Uhrzeigersinn → nonzero füllt Überlappungen
-    out.push(p);
+    const [p, q] = [strich[i], strich[i + 1]];
+    out.push(huelle(FEDER.flatMap(([dx, dy]) => [[p[0] + dx, p[1] + dy], [q[0] + dx, q[1] + dy]])));
   }
   return out;
-}
+};
 
-// ---- Federgriffe (Bausteine) ----
-// Schaft mit Rautenkopf und Rautenfuß; top/bot = Tintenkante
-const st = (x, top, bot, kopf = true, fuss = true) => [
-  ...(kopf ? [[x - 30, top - 30]] : [[x, top - 30]]), [x, top - 62],
-  [x, bot + 62], ...(fuss ? [[x + 30, bot + 30]] : [[x, bot + 30]])];
-const raute = (x, y) => [[x - 22, y + 20], [x + 22, y - 20]];
-const hexo = (L, R, t, b, c) => [
-  [[L + c, t], [L, t - c], [L, b + c], [L + c, b]],
-  [[L + c, t], [R - c, t], [R, t - c], [R, b + c], [R - c, b], [L + c, b]]];
-const bogenL = (L, R, t, b, c) => [[R, t], [L + c, t], [L, t - c], [L, b + c], [L + c, b], [R, b + 20]];
-const bogenR = (x, R, t, b, c) => [[x, t - 60], [x + 60, t], [R - c, t], [R, t - c], [R, b + c], [R - c, b], [x, b]];
-const sAuf = (L, R, t, b) => [[R + 10, t - 30], [R - 30, t], [L + 40, t], [L, t - 40], [L, (t + b) / 2 + 60], [R, (t + b) / 2 - 60], [R, b + 40], [R - 40, b], [L + 10, b], [L - 25, b + 35]];
-const ue = (x) => [raute(x - 55, 620), raute(x + 55, 620)];
+// ---- Bausteine ----
+const L = 75, R = 295;
+const punkt = (x, y) => [[x, y]];
+const bogenL = (l, r, t, b, c = 60) => [[r, t], [l + c, t], [l, t - c], [l, b + c], [l + c, b], [r, b]];
+const bogenR = (l, r, t, b, c = 60) => [[l, t], [r - c, t], [r, t - c], [r, b + c], [r - c, b], [l, b]];
+const ring = (l, r, t, b, c = 60) => [[l + c, t], [r - c, t], [r, t - c], [r, b + c], [r - c, b], [l + c, b], [l, b + c], [l, t - c], [l + c, t]];
+const schulter = (l, r, t, b, c = 110) => [[l, t - c], [l + c, t], [r, t], [r, b]];
+const sForm = (l, r, t, b) => { const m = (t + b) / 2; return [[r + 10, t], [l + 60, t], [l, t - 60], [l, m + 40], [r, m - 40], [r, b + 60], [r - 60, b], [l - 10, b]]; };
+const ueber = (striche, x1, x2, y) => [...striche, punkt(x1, y), punkt(x2, y)];
 
-const g = {}; // zeichen → [striche, breite]
-const def = (ch, striche, breite) => g[ch] = [striche, breite];
+const g = {};
+const def = (ch, striche) => g[ch] = striche;
 
 // ---- Gemeine ----
-def('a', [bogenL(60, 290, T, B, 60), st(290, 500, 0, false)], 370);
-def('b', [st(80, 800, 0, true, false), bogenR(80, 300, T, B, 60)], 370);
-def('c', [[[275, T - 35], [250, T], [130, T], [60, T - 70], [60, B + 70], [130, B], [280, B + 30]]], 340);
-def('d', [bogenL(60, 290, T, B, 60), [[220, A], [290, A - 60], [290, B + 32], [320, B]]], 370);
-def('e', [[[290, B + 30], [260, B], [130, B], [60, B + 70], [60, T - 70], [130, T], [235, T], [290, T - 55], [290, 300], [62, 220]]], 360);
-def('f', [[[90, -150], [90, 690], [150, A], [230, A], [280, A - 40]], [[30, T], [230, T]]], 300);
-def('g', [bogenL(60, 290, T, B, 60), [[290, T + 30], [290, -150], [230, D], [110, D], [60, D + 40]]], 370);
-def('h', [st(80, 800, 0), [[80, 380], [250, T], [295, T - 45], [295, -140], [230, D], [130, D]]], 370);
-def('i', [st(100, 500, 0), raute(100, 630)], 200);
-def('j', [[[70, T], [100, T - 32], [100, -150], [40, D], [-20, D + 20]], raute(100, 630)], 200);
-def('k', [st(80, 800, 0), [[80, 280], [210, T], [265, T - 40], [265, 380], [160, 300], [80, 290]], [[160, 290], [300, B]]], 350);
-def('l', [st(100, 800, 0)], 200);
-def('m', [st(80, 500, 0), [[80, 380], [230, T], [270, T - 40], [270, B + 62], [300, B + 32]], [[270, 380], [420, T], [460, T - 40], [460, B + 62], [490, B + 32]]], 560);
-def('n', [st(80, 500, 0), [[80, 380], [250, T], [290, T - 40], [290, B + 62], [320, B + 32]]], 380);
-def('o', hexo(60, 300, T, B, 60), 360);
-def('p', [st(80, 500, -250, true, false), bogenR(80, 300, T, B, 60)], 370);
-def('q', [bogenL(60, 290, T, B, 60), st(290, 500, -250, false, false)], 370);
-def('r', [st(80, 500, 0), [[80, 380], [200, T], [250, T - 30]], raute(255, T - 30)], 290);
-def('s', [sAuf(55, 270, T, B)], 330);
-def('t', [[[100, 640], [100, 90], [160, B], [260, B + 30]], [[30, T], [230, T]]], 290);
-def('u', [[[50, T], [80, T - 30], [80, B + 62], [140, B], [290, 110]], st(290, 500, 0)], 380);
-def('v', [[[50, T], [80, T - 30], [80, B + 62], [140, B], [290, 120], [290, T - 40], [245, T]]], 350);
-def('w', [[[50, T], [80, T - 30], [80, B + 62], [140, B], [270, 100]], [[270, T - 30], [270, B + 62], [330, B], [470, 120], [470, T - 40], [425, T]]], 530);
-def('x', [[[40, T], [70, T - 30], [270, B + 30], [300, B]], [[280, T], [60, B]]], 340);
-def('y', [[[50, T], [80, T - 30], [80, B + 62], [140, B], [290, 110]], [[290, T + 30], [290, -150], [230, D], [110, D], [60, D + 40]]], 370);
-def('z', [[[45, T - 40], [90, T], [280, T], [280, T - 60], [70, B + 20], [250, B], [300, B + 40]]], 340);
-def('ß', [[[80, B + 62], [80, 690], [150, A], [240, A], [290, A - 50], [290, 590], [180, 470], [290, 400], [290, 90], [230, B], [150, B]]], 370);
-def('ä', [...g.a[0], ...ue(175)], 370);
-def('ö', [...g.o[0], ...ue(180)], 360);
-def('ü', [...g.u[0], ...ue(185)], 380);
+def('a', [bogenL(L, R, T, B), [[R, T], [R, B]]]);
+def('b', [[[L, A], [L, B]], bogenR(L, R, T, B)]);
+def('c', [[[R + 10, T], [L + 60, T], [L, T - 60], [L, B + 60], [L + 60, B], [R + 10, B]]]);
+def('d', [[[R, T - 40], [R, B + 60], [R - 60, B], [L + 60, B], [L, B + 60], [L, T - 60], [L + 60, T], [R - 20, T]], [[R, T - 40], [R, T + 60], [L + 10, A]]]);
+def('e', [[[R + 10, B], [L + 60, B], [L, B + 60], [L, T - 60], [L + 60, T], [R - 50, T], [R, T - 50], [R, 250], [L, 250]]]);
+def('f', [[[L, B], [L, A - 60], [L + 60, A], [R + 10, A]], [[L - 50, T], [R - 40, T]]]);
+def('g', [bogenL(L, R, T, B), [[R, T], [R, D + 60], [R - 60, D], [L - 10, D]]]);
+def('h', [[[L, A], [L, B]], [[L, T - 110], [L + 110, T], [R, T], [R, D + 60], [R - 60, D], [L + 20, D]]]);
+def('i', [[[L, T], [L, B]], punkt(L, 640)]);
+def('j', [[[L, T], [L, D + 60], [L - 60, D], [L - 120, D]], punkt(L, 640)]);
+def('k', [[[L, A], [L, B]], [[L + 30, 240], [R, T]], [[L + 60, 260], [R + 10, B]]]);
+def('l', [[[L, A], [L, B]]]);
+def('m', [[[75, T], [75, B]], schulter(75, 285, T, B), schulter(285, 495, T, B)]);
+def('n', [[[L, T], [L, B]], schulter(L, R, T, B)]);
+def('o', [ring(L, R, T, B)]);
+def('p', [[[L, T], [L, D]], bogenR(L, R, T, B)]);
+def('q', [bogenL(L, R, T, B), [[R, T], [R, D]]]);
+def('r', [[[L, T], [L, B]], [[L, T - 110], [L + 110, T], [R, T], [R, T - 50]]]);
+def('s', [sForm(L, R, T, B)]);
+def('t', [[[L, 640], [L, B + 60], [L + 60, B], [R, B]], [[L - 50, T], [R - 40, T]]]);
+def('u', [[[L, T], [L, B + 60], [L + 60, B], [R, B]], [[R, T], [R, B]]]);
+def('v', [[[L, T], [L, B + 60], [L + 60, B], [R, B + 110], [R, T]]]);
+def('w', [[[75, T], [75, B + 60], [135, B], [285, B]], [[285, T], [285, B + 60], [345, B], [495, B + 110], [495, T]]]);
+def('x', [[[L, T], [R, B]], [[R, T], [L, B]]]);
+def('y', [[[L, T], [L, B + 60], [L + 60, B], [R, B]], [[R, T], [R, D + 60], [R - 60, D], [L - 10, D]]]);
+def('z', [[[L, T], [R, T], [R, T - 50], [L, B + 50], [L, B], [R + 10, B]]]);
+def('ß', [[[L, B], [L, A - 60], [L + 60, A], [R - 60, A], [R, A - 60], [R, 560], [L + 90, 420], [R - 60, 400], [R, 340], [R, B + 60], [R - 60, B], [L + 40, B]]]);
+def('ä', ueber(g.a, L, R, 640));
+def('ö', ueber(g.o, L, R, 640));
+def('ü', ueber(g.u, L, R, 640));
 
-// ---- Versalien (vereinfacht, gebrochen) ----
-def('A', [[[40, B], [250, C]], [[250, C], [330, C], [400, C - 70], [400, B + 62], [430, B + 32]], [[140, 330], [400, 330]]], 480);
-def('B', [st(80, 700, 0, true, false), [[80, C], [300, C], [350, C - 50], [350, 440], [270, 380], [80, 380]], [[270, 380], [380, 320], [380, 90], [320, B], [80, B]]], 450);
-def('C', [[[400, C - 30], [370, C], [170, C], [70, C - 100], [70, B + 100], [170, B], [370, B], [420, B + 40]], raute(400, C - 40)], 460);
-def('D', [st(80, 700, 0, true, false), [[80, C], [290, C], [410, C - 120], [410, B + 120], [290, B], [80, B]]], 480);
-def('E', [[[400, C - 30], [370, C], [170, C], [70, C - 100], [70, B + 100], [170, B], [370, B], [420, B + 40]], [[90, 370], [320, 370]]], 460);
-def('F', [st(110, 700, 0, false), [[40, C], [390, C], [430, C - 40]], [[110, 370], [330, 370]]], 450);
-def('G', [[[400, C - 30], [370, C], [170, C], [70, C - 100], [70, B + 100], [170, B], [340, B], [410, B + 70], [410, 300], [250, 300]]], 480);
-def('H', [st(80, 700, 0), [[80, 380], [300, C - 220], [380, C - 300], [380, B + 62], [410, B + 32]], [[30, C], [80, C - 30]]], 470);
-def('I', [[[90, C], [310, C]], [[200, C], [200, B]], [[90, B], [310, B]]], 400);
-def('J', [[[90, C], [330, C]], [[250, C], [250, 100], [180, B], [80, B], [30, B + 50]]], 380);
-def('K', [st(80, 700, 0), [[400, C], [100, 370]], [[190, 420], [420, B]]], 450);
-def('L', [st(100, 700, 0, true, false), [[100, B], [380, B], [420, B + 40]]], 440);
-def('M', [st(80, 700, 0), [[80, C - 120], [230, C], [280, C - 50], [280, B + 62], [310, B + 32]], [[280, C - 120], [430, C], [480, C - 50], [480, B + 62], [510, B + 32]]], 580);
-def('N', [st(80, 700, 0), [[80, C], [380, B]], st(380, 700, 0, true, false)], 470);
-def('O', hexo(70, 420, C, B, 100), 490);
-def('P', [st(80, 700, 0), [[80, C], [300, C], [380, C - 80], [380, 420], [300, 340], [80, 340]]], 450);
-def('Q', [...hexo(70, 420, C, B, 100), [[250, 120], [450, -130]]], 490);
-def('R', [st(80, 700, 0), [[80, C], [300, C], [380, C - 80], [380, 420], [300, 340], [80, 340]], [[220, 340], [410, B]]], 460);
-def('S', [sAuf(60, 380, C, B)], 440);
-def('T', [[[40, C], [420, C], [450, C - 40]], st(240, 700, 0, false)], 480);
-def('U', [[[50, C], [80, C - 30], [80, B + 90], [160, B], [380, 120]], st(380, 700, 0)], 470);
-def('V', [[[50, C], [80, C - 30], [80, B + 90], [160, B], [400, 200], [400, C - 50], [350, C]]], 470);
-def('W', [[[50, C], [80, C - 30], [80, B + 90], [150, B], [290, 120]], [[290, C - 30], [290, B + 90], [360, B], [520, 200], [520, C - 50], [470, C]]], 590);
-def('X', [[[40, C], [70, C - 30], [390, B + 30], [420, B]], [[410, C], [60, B]]], 460);
-def('Y', [[[40, C], [70, C - 30], [230, 360]], [[420, C], [230, 360], [230, B + 62], [260, B + 32]]], 460);
-def('Z', [[[50, C - 50], [100, C], [400, C], [400, C - 60], [70, B + 20], [370, B], [420, B + 40]], [[130, 350], [330, 350]]], 460);
-def('Ä', [...g.A[0], ...ue(250).map(r => r.map(([x, y]) => [x, y + 180]))], 480);
-def('Ö', [...g.O[0], ...ue(245).map(r => r.map(([x, y]) => [x, y + 180]))], 490);
-def('Ü', [...g.U[0], ...ue(230).map(r => r.map(([x, y]) => [x, y + 180]))], 470);
+// ---- Versalien ----
+const VL = 85, VR = 385;
+def('A', [[[VL, B], [VL, C - 60], [VL + 60, C], [VR, C], [VR, B]], [[VL, 340], [VR, 340]]]);
+def('B', [[[VL, C], [VL, B]], [[VL, C], [VR - 60, C], [VR, C - 60], [VR, 420], [VR - 60, 360], [VL, 360]], [[VR - 60, 360], [VR, 300], [VR, B + 60], [VR - 60, B], [VL, B]]]);
+def('C', [[[VR + 10, C], [VL + 80, C], [VL, C - 80], [VL, B + 80], [VL + 80, B], [VR + 10, B]], [[VL + 150, C - 120], [VL + 150, C]]]);
+def('D', [[[VL, C], [VL, B]], [[VL, C], [VR - 80, C], [VR, C - 80], [VR, B + 80], [VR - 80, B], [VL, B]]]);
+def('E', [[[VR + 10, C], [VL + 80, C], [VL, C - 80], [VL, B + 80], [VL + 80, B], [VR + 10, B]], [[VL, 360], [VR - 40, 360]]]);
+def('F', [[[VL, C], [VL, B]], [[VL, C], [VR + 10, C]], [[VL, 360], [VR - 40, 360]]]);
+def('G', [[[VR + 10, C], [VL + 80, C], [VL, C - 80], [VL, B + 80], [VL + 80, B], [VR, B], [VR, 330], [VR - 110, 330]]]);
+def('H', [[[VL, C], [VL, B]], [[VL, C - 130], [VL + 130, 380], [VR, 380]], [[VR, C], [VR, D + 60], [VR - 60, D], [VL + 40, D]]]);
+def('I', [[[110, C], [110, B]], [[30, C], [190, C]]]);
+def('J', [[[30, C], [230, C]], [[160, C], [160, B + 60], [100, B], [20, B]]]);
+def('K', [[[VL, C], [VL, B]], [[VL + 40, 320], [VR, C]], [[VL + 70, 350], [VR + 10, B]]]);
+def('L', [[[VL, C], [VL, B], [VR + 10, B]]]);
+def('M', [[[75, C], [75, B]], schulter(75, 295, C, B, 120), schulter(295, 515, C, B, 120)]);
+def('N', [[[VL, C], [VL, B]], schulter(VL, VR, C, B, 130)]);
+def('O', [ring(VL, VR, C, B, 80)]);
+def('P', [[[VL, C], [VL, B]], [[VL, C], [VR - 60, C], [VR, C - 60], [VR, 400], [VR - 60, 340], [VL, 340]]]);
+def('Q', [ring(VL, VR, C, B, 80), [[VR - 80, B + 40], [VR + 40, B - 110]]]);
+def('R', [[[VL, C], [VL, B]], [[VL, C], [VR - 60, C], [VR, C - 60], [VR, 400], [VR - 60, 340], [VL, 340]], [[VR - 60, 340], [VR, 280], [VR, B]]]);
+def('S', [sForm(VL, VR, C, B)]);
+def('T', [[[30, C], [410, C]], [[220, C], [220, B]]]);
+def('U', [[[VL, C], [VL, B + 60], [VL + 60, B], [VR, B]], [[VR, C], [VR, B]]]);
+def('V', [[[VL, C], [VL, B + 60], [VL + 60, B], [VR, B + 130], [VR, C]]]);
+def('W', [[[75, C], [75, B + 60], [135, B], [295, B]], [[295, C], [295, B + 60], [355, B], [515, B + 130], [515, C]]]);
+def('X', [[[VL, C], [VR, B]], [[VR, C], [VL, B]]]);
+def('Y', [[[VL, C], [VL, 400], [VL + 60, 340], [VR, 340]], [[VR, C], [VR, B]]]);
+def('Z', [[[VL, C], [VR, C], [VR, C - 60], [VL, B + 60], [VL, B], [VR + 10, B]]]);
+def('Ä', ueber(g.A, VL, VR, 840));
+def('Ö', ueber(g.O, VL, VR, 840));
+def('Ü', ueber(g.U, VL, VR, 840));
 
-// ---- Ziffern (Höhe 650) ----
-const Z = 620;
-def('0', hexo(60, 340, Z, B, 80), 400);
-def('1', [[[90, Z - 100], [210, Z]], st(210, 650, 0, false)], 400);
-def('2', [[[70, Z - 60], [130, Z], [270, Z], [330, Z - 60], [330, 400], [70, B + 20], [300, B], [350, B + 40]]], 400);
-def('3', [[[70, Z - 40], [120, Z], [270, Z], [330, Z - 60], [330, 410], [270, 350], [170, 350]], [[270, 350], [340, 280], [340, 90], [280, B], [120, B], [60, B + 50]]], 400);
-def('4', [[[260, Z], [50, 220], [360, 220]], st(270, 650, 0, false)], 400);
-def('5', [[[330, Z], [90, Z], [80, 380], [270, 380], [340, 310], [340, 90], [280, B], [120, B], [60, B + 50]]], 400);
-def('6', [[[310, Z], [150, Z], [70, Z - 100], [70, B + 70], [130, B], [280, B], [340, B + 60], [340, 300], [280, 360], [80, 360]]], 400);
-def('7', [[[50, Z - 30], [80, Z], [340, Z], [150, B]], [[120, 330], [300, 330]]], 400);
-def('8', [...hexo(80, 320, Z, 360, 60), ...hexo(60, 340, 360, B, 70)], 400);
-def('9', [[[90, B], [250, B], [330, 100], [330, Z - 70], [270, Z], [120, Z], [60, Z - 60], [60, 420], [120, 360], [320, 360]]], 400);
+// ---- Ziffern ----
+const ZL = 75, ZR = 305;
+def('0', [ring(ZL, ZR, Z, B, 70)]);
+def('1', [[[60, 500], [190, Z]], [[190, Z], [190, B]]]);
+def('2', [[[ZL, Z - 50], [ZL + 50, Z], [ZR - 60, Z], [ZR, Z - 60], [ZR, 400], [ZL, B + 60], [ZL, B], [ZR + 10, B]]]);
+def('3', [[[ZL, Z], [ZR - 60, Z], [ZR, Z - 60], [ZR, 400], [ZR - 60, 340], [ZL + 40, 340]], [[ZR - 60, 340], [ZR, 280], [ZR, B + 60], [ZR - 60, B], [ZL, B]]]);
+def('4', [[[ZR - 20, Z], [ZL, 240], [ZL, 190], [ZR + 40, 190]], [[ZR, 400], [ZR, B]]]);
+def('5', [[[ZR + 10, Z], [ZL, Z], [ZL, 350], [ZR - 60, 350], [ZR, 290], [ZR, B + 60], [ZR - 60, B], [ZL, B]]]);
+def('6', [[[ZR, Z], [ZL + 60, Z], [ZL, Z - 60], [ZL, B + 60], [ZL + 60, B], [ZR - 60, B], [ZR, B + 60], [ZR, 290], [ZR - 60, 350], [ZL, 350]]]);
+def('7', [[[ZL, Z], [ZR, Z], [ZR, Z - 90], [ZL + 60, B]]]);
+def('8', [ring(ZL + 10, ZR - 10, Z, 340, 55), ring(ZL, ZR, 340, B, 60)]);
+def('9', [[[ZL, B], [ZR - 60, B], [ZR, B + 60], [ZR, Z - 60], [ZR - 60, Z], [ZL + 60, Z], [ZL, Z - 60], [ZL, 360], [ZL + 60, 300], [ZR, 300]]]);
 
 // ---- Zeichen ----
-def('.', [raute(90, 30)], 180);
-def(',', [[[68, 50], [112, 10], [70, -110]]], 180);
-def(':', [raute(90, 30), raute(90, 400)], 180);
-def(';', [[[68, 50], [112, 10], [70, -110]], raute(90, 400)], 180);
-def('-', [[[40, 270], [220, 270]]], 260);
-def('–', [[[40, 270], [460, 270]]], 500);
-def('!', [st(100, 720, 180, true, false), raute(100, 30)], 200);
-def('?', [[[60, 620], [120, 690], [270, 690], [320, 630], [320, 520], [170, 380], [170, 220]], raute(170, 30)], 380);
-def("'", [[[80, 700], [80, 560]]], 160);
-def('"', [[[70, 700], [70, 560]], [[160, 700], [160, 560]]], 240);
-def('(', [[[220, 760], [90, 600], [90, 0], [220, -160]]], 260);
-def(')', [[[40, 760], [170, 600], [170, 0], [40, -160]]], 260);
-def('/', [[[40, -120], [300, 760]]], 340);
-def('&', [[[400, B], [110, 450], [110, 590], [170, 660], [260, 660], [310, 600], [80, 300], [80, 90], [140, B], [260, B], [380, 220]]], 450);
-def(' ', [], 220);
+def('.', [punkt(75, B)]);
+def(',', [[[75, B], [55, -100]]]);
+def(':', [punkt(75, B), punkt(75, 400)]);
+def(';', [[[75, B], [55, -100]], punkt(75, 400)]);
+def('-', [[[60, 260], [180, 260]]]);
+def('–', [[[60, 260], [400, 260]]]);
+def('!', [[[75, 700], [75, 230]], punkt(75, B)]);
+def('?', [[[L, 600], [L + 60, 655], [R - 60, 655], [R, 595], [R, 470], [185, 360], [185, 250]], punkt(185, B)]);
+def("'", [[[75, 700], [75, 580]]]);
+def('"', [[[75, 700], [75, 580]], [[235, 700], [235, 580]]]);
+def('(', [[[210, 760], [90, 640], [90, -60], [210, -180]]]);
+def(')', [[[75, 760], [195, 640], [195, -60], [75, -180]]]);
+def('/', [[[60, -120], [300, 760]]]);
+def('&', [[[R + 60, B], [L + 60, 430], [L + 60, 580], [L + 120, 655], [R - 40, 655], [R, 590], [L, 310], [L, B + 60], [L + 60, B], [R, B], [R + 60, 200]]]);
 
-// ---- Schrift erzeugen ----
-const glyphs = [new opentype.Glyph({ name: '.notdef', unicode: 0, advanceWidth: 400, path: new opentype.Path() })];
-for (const [ch, [striche, breite]] of Object.entries(g)) {
-  const p = new opentype.Path();
-  for (const s of striche) for (const pg of parallelogramme(s)) {
-    p.moveTo(...pg[0].map(Math.round)); for (let k = 1; k < 4; k++) p.lineTo(...pg[k].map(Math.round)); p.close();
-  }
-  glyphs.push(new opentype.Glyph({ name: 'u' + ch.codePointAt(0).toString(16).toUpperCase().padStart(4, '0'), unicode: ch.codePointAt(0), advanceWidth: breite + 30, path: p }));
+// ---- Schrift erzeugen (Vor- und Nachbreite automatisch: je 35 Einheiten) ----
+const glyphs = [new opentype.Glyph({ name: '.notdef', unicode: 0, advanceWidth: 400, path: new opentype.Path() }),
+  new opentype.Glyph({ name: 'space', unicode: 32, advanceWidth: 240, path: new opentype.Path() })];
+for (const [ch, striche] of Object.entries(g)) {
+  const roh = striche.flatMap(zug);
+  const verschmolzen = roh.length ? pc.union(...roh.map(p => [[...p, p[0]]])) : [];
+  const polys = verschmolzen.flatMap(poly => poly.map(ring => ring.slice(0, -1)));
+  const minX = Math.min(...polys.flat().map(p => p[0])), maxX = Math.max(...polys.flat().map(p => p[0]));
+  const dx = 35 - minX, p = new opentype.Path();
+  for (const pg of polys) { pg.forEach(([x, y], k) => p[k ? 'lineTo' : 'moveTo'](Math.round(x + dx), Math.round(y))); p.close(); }
+  glyphs.push(new opentype.Glyph({ name: 'u' + ch.codePointAt(0).toString(16).toUpperCase().padStart(4, '0'), unicode: ch.codePointAt(0), advanceWidth: Math.round(maxX - minX + 70), path: p }));
 }
 const font = new opentype.Font({
-  familyName: 'Lernfraktur', styleName: 'Regular', unitsPerEm: 1000, ascender: 820, descender: -260, glyphs,
+  familyName: 'Lernfraktur', styleName: 'Regular', unitsPerEm: 1000, ascender: 900, descender: -260, glyphs,
   copyright: 'Lernfraktur – frei unter der SIL Open Font License 1.1',
   license: 'SIL Open Font License 1.1', licenseURL: 'https://openfontlicense.org',
 });
-const ziel = process.argv[2] || path.join(__dirname, 'Lernfraktur.otf');
-font.download ? 0 : 0;
-require('fs').writeFileSync(ziel, Buffer.from(font.toArrayBuffer()));
-console.log('geschrieben:', ziel, Object.keys(g).length, 'Zeichen');
+const ziel = process.argv[2] || 'Lernfraktur.otf';
+fs.writeFileSync(ziel, Buffer.from(font.toArrayBuffer()));
+console.log('geschrieben:', ziel, glyphs.length - 1, 'Zeichen');

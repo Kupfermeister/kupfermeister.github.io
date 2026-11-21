@@ -4,8 +4,8 @@
 type Bild = { titel: string; urheber: string; lizenz: string; quelle: string; position?: string };
 const c = (datei: string) => `https://commons.wikimedia.org/wiki/File:${datei}`;
 export const bilder: Record<string, Bild> = {
-  biologie: { titel: 'Haeckel, Kunstformen der Natur (Stephoidea)', urheber: 'Ernst Haeckel', lizenz: 'gemeinfrei', quelle: c('Haeckel_Stephoidea.jpg') },
-  chemie: { titel: 'Mendelejews Periodensystem 1869', urheber: 'NikNaks nach D. Mendelejew', lizenz: 'gemeinfrei', quelle: c("Mendeleev's_1869_periodic_table.svg") },
+  biologie: { titel: 'Photo 51 – Röntgenbeugungsbild der DNA (Nachbildung)', urheber: 'Emily Willoughby', lizenz: 'CC0', quelle: c('60251254_photo-51-print-qp867-a4_2.jpg') },
+  chemie: { titel: 'Koffein-Molekül (Kugel-Stab-Modell)', urheber: 'Jynto', lizenz: 'CC0', quelle: c('Caffeine_(2)_3D_ball.png') },
   deutsch: { titel: 'Gutenberg-Bibel, Genesis', urheber: 'Johannes Gutenberg', lizenz: 'gemeinfrei', quelle: c('Gutenberg_Bible_B42_Genesis.JPG') },
   englisch: { titel: 'Elizabeth Tower (Big Ben)', urheber: 'Julian Herzog', lizenz: 'CC BY 4.0', quelle: c('Big_Ben_Elizabeth_Tower_London_2023_01.jpg'), position: '50% 20%' },
   ethik: { titel: 'Kant, Grundlegung zur Metaphysik der Sitten (1785)', urheber: 'Immanuel Kant', lizenz: 'gemeinfrei', quelle: c('Kant_Groundwork_Title.jpg') },
