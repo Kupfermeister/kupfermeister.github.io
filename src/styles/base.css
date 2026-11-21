@@ -159,11 +159,12 @@ h3 { font-size: 1.1rem; margin: 1.6rem 0 0.4rem; }
 .fach-links a {
   --pdf: var(--k, var(--akzent));
   display: inline-flex; align-items: center; gap: 0.35rem;
-  padding: 0.3rem 0.65rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600; text-decoration: none;
-  border: 1px solid color-mix(in oklab, var(--pdf) 45%, var(--linie)); background: var(--hg); color: var(--pdf);
-  transition: border-color 0.2s, background 0.2s;
+  padding: 0.2rem 0.55rem; border-radius: 999px; font-size: 0.75rem; font-weight: 500; text-decoration: none;
+  border: 1px solid color-mix(in oklab, var(--pdf) 20%, transparent); background: color-mix(in oklab, var(--hg) 70%, transparent);
+  color: color-mix(in oklab, var(--pdf) 70%, transparent); /* unscheinbar, beim Zeigen deutlicher */
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
 }
-.fach-links a:hover { border-color: var(--k, var(--akzent)); background: color-mix(in oklab, var(--k, var(--akzent)) 12%, var(--hg)); }
+.fach-links a:hover { color: var(--pdf); border-color: var(--k, var(--akzent)); background: color-mix(in oklab, var(--k, var(--akzent)) 12%, var(--hg)); }
 .fach-links .pdf { font-size: 0.68rem; letter-spacing: 0.05em; color: inherit; opacity: 0.7; }
 .fach-links.grundlagen { padding: 0.4rem 0 1.75rem; }
 
