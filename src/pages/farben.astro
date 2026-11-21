@@ -1,0 +1,26 @@
+---
+import Basis from '../layouts/Basis.astro';
+import { farben } from '../design/farben';
+import { url } from '../lib/inhalt';
+---
+<Basis titel="Farbbedeutungen" pfad={[{ titel: 'Farbbedeutungen', href: url('farben/') }]}>
+  <article class="inhalt">
+    <h1>Farbbedeutungen</h1>
+    <p class="lead">Auf der ganzen Seite steht eine Farbe immer für dasselbe.</p>
+    {Object.entries(farben).map(([gruppe, eintraege]) => (
+      <section>
+        <h2>{gruppe}</h2>
+        <table>
+          <tbody>
+            {Object.entries(eintraege).map(([k, v]) => (
+              <tr>
+                <td><span class={`f f-${k}`}>{v.name}</span></td>
+                <td>{v.info}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    ))}
+  </article>
+</Basis>

@@ -1,0 +1,40 @@
+---
+import Basis from '../../layouts/Basis.astro';
+import Kachel from '../../components/Kachel.astro';
+import { alleFaecher, alleThemen, url } from '../../lib/inhalt';
+import { artLabel } from '../../design/seite';
+import { loeseFarbe } from '../../design/farben';
+
+export async function getStaticPaths() {
+  // Nur Fächer mit mindestens einem Thema bekommen eine eigene Seite
+  const faecher = await alleFaecher();
+  const themen = await alleThemen();
+  return faecher
+    .filter((f) => themen.some((t) => t.fach === f.slug))
+    .map((fach) => ({ params: { fach: fach.slug }, props: { fach } }));
+}
+
+const { fach } = Astro.props;
+const themen = await alleThemen(fach.slug);
+---
+<Basis
+  titel={fach.data.titel}
+  beschreibung={fach.data.beschreibung}
+  akzent={fach.data.farbe}
+  pfad={[{ titel: fach.data.titel, href: url(`${fach.slug}/`) }]}
+>
+  <h1>{fach.data.titel}</h1>
+  {fach.data.beschreibung && <p class="lead">{fach.data.beschreibung}</p>}
+  <div class="kacheln klein">
+    {themen.map((t) => (
+      <Kachel
+        klein
+        href={url(`${fach.slug}/${t.slug}/`)}
+        titel={t.data.titel}
+        text={t.data.beschreibung}
+        farbe={loeseFarbe(t.data.akzent) ?? fach.data.farbe}
+        label={artLabel[t.data.art]}
+      />
+    ))}
+  </div>
+</Basis>

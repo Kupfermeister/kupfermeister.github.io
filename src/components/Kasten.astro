@@ -1,0 +1,17 @@
+---
+// <Kasten merke> … </Kasten>  ·  Arten: merke, definition, beispiel, achtung, tipp
+// Optional eigener Titel: <Kasten tipp titel="Eselsbrücke">
+const arten: Record<string, string> = {
+  merke: 'Merke',
+  definition: 'Definition',
+  beispiel: 'Beispiel',
+  achtung: 'Achtung',
+  tipp: 'Tipp',
+};
+const typ = Object.keys(arten).find((k) => Astro.props[k]) ?? 'merke';
+const titel = Astro.props.titel ?? arten[typ];
+---
+<aside class={`kasten kasten-${typ}`}>
+  <p class="kasten-titel">{titel}</p>
+  <slot />
+</aside>

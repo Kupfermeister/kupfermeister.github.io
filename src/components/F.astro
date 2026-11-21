@@ -1,0 +1,11 @@
+---
+// Bedeutungsfarbe: <F anion>Cl⁻</F>  ·  erlaubte Namen stehen in src/design/farben.ts
+import { farbNamen } from '../design/farben';
+const typ = Object.keys(Astro.props).find((k) => farbNamen.includes(k));
+if (!typ) {
+  throw new Error(
+    `<F>: unbekannte Bedeutungsfarbe "${Object.keys(Astro.props).join(' ')}". Erlaubt: ${farbNamen.join(', ')}`,
+  );
+}
+---
+<span class={`f f-${typ}`}><slot /></span>

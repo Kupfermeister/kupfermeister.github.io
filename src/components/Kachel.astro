@@ -1,0 +1,26 @@
+---
+// Ohne href: Kachel ist sichtbar, aber führt (noch) nirgendwohin.
+interface Props {
+  href?: string;
+  titel: string;
+  text?: string;
+  kuerzel?: string;
+  farbe?: string;
+  label?: string;
+  klein?: boolean;
+}
+const { href, titel, text, kuerzel, farbe, label, klein = false } = Astro.props;
+const Tag = href ? 'a' : 'div';
+---
+<Tag
+  class:list={['kachel', { klein, inaktiv: !href }]}
+  href={href}
+  style={farbe ? `--k:${farbe}` : undefined}
+>
+  <span class="kachel-kopf">
+    {kuerzel && <span class="kachel-kuerzel" aria-hidden="true">{kuerzel}</span>}
+    <span class="kachel-titel">{titel}</span>
+  </span>
+  {text && <span class="kachel-text">{text}</span>}
+  {label && <span class="kachel-label">{label}</span>}
+</Tag>

@@ -1,0 +1,45 @@
+---
+import '../styles/base.css';
+import { farbCss } from '../design/farben';
+import { seite } from '../design/seite';
+import { url } from '../lib/inhalt';
+
+interface Props {
+  titel: string;
+  beschreibung?: string;
+  pfad?: { titel: string; href: string }[];
+  akzent?: string;
+  ohneRahmen?: boolean; // ohne Kopf- und Fußzeile (Startseite)
+}
+const { titel, beschreibung = seite.untertitel, pfad = [], akzent, ohneRahmen = false } = Astro.props;
+const voll = titel === seite.name ? titel : `${titel} · ${seite.name}`;
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{voll}</title>
+    <meta name="description" content={beschreibung} />
+    <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+    <style is:inline set:html={farbCss()} />
+  </head>
+  <body style={akzent ? `--akzent:${akzent}` : undefined}>
+    {!ohneRahmen && <header class="kopf">
+      <div class="breite">
+        <a class="marke" href={url()}>{seite.name}</a>
+        <nav class="pfad" aria-label="Pfad">
+          {pfad.map((p) => (
+            <>
+              <span aria-hidden="true">/</span>
+              <a href={p.href}>{p.titel}</a>
+            </>
+          ))}
+        </nav>
+      </div>
+    </header>}
+    <main class="breite">
+      <slot />
+    </main>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+---
+import { render } from 'astro:content';
+import Basis from '../../layouts/Basis.astro';
+import F from '../../components/F.astro';
+import Kasten from '../../components/Kasten.astro';
+import { alleFaecher, alleThemen, url } from '../../lib/inhalt';
+import { artLabel } from '../../design/seite';
+import { loeseFarbe } from '../../design/farben';
+
+export async function getStaticPaths() {
+  const faecher = await alleFaecher();
+  const themen = await alleThemen();
+  return themen.flatMap((thema) => {
+    const fach = faecher.find((f) => f.slug === thema.fach);
+    return fach ? [{ params: { fach: fach.slug, thema: thema.slug }, props: { fach, thema } }] : [];
+  });
+}
+
+const { fach, thema } = Astro.props;
+const { Content } = await render(thema);
+const label = artLabel[thema.data.art];
+---
+<Basis
+  titel={thema.data.titel}
+  beschreibung={thema.data.beschreibung}
+  akzent={loeseFarbe(thema.data.akzent) ?? fach.data.farbe}
+  pfad={[
+    { titel: fach.data.titel, href: url(`${fach.slug}/`) },
+    { titel: thema.data.titel, href: url(`${fach.slug}/${thema.slug}/`) },
+  ]}
+>
+  <article class:list={['inhalt', { breit: thema.data.breit }]}>
+    {label && <p class="art">{label}</p>}
+    <h1>{thema.data.titel}</h1>
+    {thema.data.beschreibung && <p class="lead">{thema.data.beschreibung}</p>}
+    <Content components={{ F, Kasten }} />
+  </article>
+</Basis>

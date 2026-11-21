@@ -1,0 +1,25 @@
+---
+// Startseite: nur Fach-Kacheln. Fächer ohne Themen werden angezeigt, sind aber nicht klickbar.
+import Basis from '../layouts/Basis.astro';
+import Kachel from '../components/Kachel.astro';
+import { alleFaecher, alleThemen, url } from '../lib/inhalt';
+import { seite } from '../design/seite';
+
+const faecher = await alleFaecher();
+const themen = await alleThemen();
+const hatThemen = (f: string) => themen.some((t) => t.fach === f);
+---
+<Basis titel={seite.name} ohneRahmen>
+  <h1 class="unsichtbar">{seite.name}</h1>
+  <div class="kacheln">
+    {faecher.map((f) => (
+      <Kachel
+        href={hatThemen(f.slug) ? url(`${f.slug}/`) : undefined}
+        titel={f.data.titel}
+        text={f.data.beschreibung}
+        kuerzel={f.data.kuerzel}
+        farbe={f.data.farbe}
+      />
+    ))}
+  </div>
+</Basis>
