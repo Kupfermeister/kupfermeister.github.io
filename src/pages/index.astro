@@ -11,12 +11,12 @@ const anzahl = (f: string) => themen.filter((t) => t.fach === f).length;
 ---
 <Basis titel={seite.name}>
   <section class="start">
-    <h1>{seite.name}</h1>
     <p class="lead">{seite.untertitel}</p>
     <div class="faecher">
       {faecher.map((f) => (
         <FachKachel
           href={anzahl(f.slug) ? url(`${f.slug}/`) : undefined}
+          fach={f.slug}
           titel={f.data.titel}
           text={f.data.beschreibung}
           farbe={f.data.farbe}

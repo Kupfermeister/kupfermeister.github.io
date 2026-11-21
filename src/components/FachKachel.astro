@@ -3,6 +3,7 @@
 // Ganze Kachel ist klickbar (über den Titel-Link), die PDF-Links liegen darüber und bleiben eigenständig.
 // Ohne href: Fach hat noch keine Themen → sichtbar, aber nicht klickbar.
 import { abiturerlass } from '../design/seite';
+import FachBild from './FachBild.astro';
 
 interface Props {
   href?: string;
@@ -11,12 +12,14 @@ interface Props {
   farbe: string;
   anzahl: number;
   kerncurriculum?: string;
+  fach?: string;
 }
-const { href, titel, text, farbe, anzahl, kerncurriculum } = Astro.props;
+const { href, titel, text, farbe, anzahl, kerncurriculum, fach = '' } = Astro.props;
 const zaehler =
   anzahl === 0 ? 'noch keine Themen' : anzahl === 1 ? '1 Thema' : `${anzahl} Themen`;
 ---
 <article class:list={['fach', { inaktiv: !href }]} style={`--k:${farbe}`} data-fach>
+  <FachBild fach={fach} />
   <span class="fach-zeichen" aria-hidden="true">{titel.slice(0, 1)}</span>
   <h2 class="fach-titel">
     {href ? <a href={href}>{titel}</a> : titel}
