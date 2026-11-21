@@ -1,0 +1,19 @@
+---
+// Bettet eine Lernakte aus public/akten/ nahtlos ein: keine Box, Höhe wächst mit dem Inhalt.
+const { datei, titel } = Astro.props;
+---
+<iframe data-akte src={`/akten/${datei}.html`} title={titel} scrolling="no"></iframe>
+
+<style>
+  iframe { display: block; width: 100%; height: 80vh; border: 0; background: transparent; overflow: hidden; }
+</style>
+
+<script>
+  addEventListener('message', (e) => {
+    document.querySelectorAll<HTMLIFrameElement>('[data-akte]').forEach((f) => {
+      if (e.source !== f.contentWindow) return;
+      if (e.data?.akteHoehe) f.style.height = e.data.akteHoehe + 'px';
+      if (e.data?.akteOben) f.scrollIntoView({ block: 'start' });
+    });
+  });
+</script>

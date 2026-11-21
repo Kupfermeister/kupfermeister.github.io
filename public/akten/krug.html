@@ -1,4 +1,23 @@
-<title>Kleists Krug-Akte</title>
+<style id="einbettung">
+html.eingebettet:root,html.eingebettet:root[data-theme]{--paper:#ffffff;--sheet:#f6f7f9;--ink:#1a1d21;--ink-2:#5b636e;--line:#e3e6ea;--delft:#3b82f6;--delft-soft:color-mix(in srgb,#3b82f6 14%,#ffffff);--f-display:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--f-body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--f-ui:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--f-mono:ui-monospace,monospace}
+@media (prefers-color-scheme:dark){html.eingebettet:root{--paper:#121417;--sheet:#1b1e23;--ink:#e8eaed;--ink-2:#9aa3ad;--line:#2c3138;--delft:#7aa7ff;--delft-soft:color-mix(in srgb,#7aa7ff 14%,#121417);}}
+html.eingebettet body{background:transparent!important;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+html.eingebettet .hero,html.eingebettet .mark,html.eingebettet .home,html.eingebettet .eyebrow{display:none!important}
+html.eingebettet header.top,html.eingebettet .bar{position:static;background:none;backdrop-filter:none;border-bottom:0}
+html.eingebettet .wrap{padding-inline:0}
+/*kacheln*/html.eingebettet .tiles{grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:1rem;padding:0 0 2rem}
+html.eingebettet .tile{gap:.35rem;padding:1.1rem 1.2rem;min-height:0;box-shadow:none;transform:none!important;border:1px solid var(--line,var(--rule));border-top:3px solid var(--delft,var(--accent));border-radius:10px;background:transparent;font-family:inherit}
+html.eingebettet .tile:hover{background:var(--sheet,var(--card));border-color:var(--delft,var(--accent))}
+html.eingebettet .tile h2,html.eingebettet .tile h3{font:650 1.08rem/1.3 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;margin:0;color:var(--ink)}
+html.eingebettet .tile p{font:400 .95rem/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink-2,var(--ink2))}
+html.eingebettet .tile .reg,html.eingebettet .tile .no{font:600 .75rem/1 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2,var(--ink3))}
+html.eingebettet .tile .meta,html.eingebettet .tile .state{margin-top:auto;padding-top:.4rem;font:600 .8rem/1.3 system-ui,sans-serif;letter-spacing:0;text-transform:none;color:var(--delft,var(--accent))}
+html.eingebettet .tile.first,html.eingebettet .tile.reader{box-shadow:none;background:transparent}
+</style>
+<script>if(window.self!==window.top){document.documentElement.classList.add('eingebettet');
+const send=()=>parent.postMessage({akteHoehe:document.documentElement.scrollHeight},'*');
+addEventListener('load',()=>{send();new ResizeObserver(send).observe(document.body)});
+addEventListener('hashchange',()=>parent.postMessage({akteOben:1},'*'));}</script><title>Kleists Krug-Akte</title>
 <meta name="description" content="Lernakte zu Kleists „Der zerbrochne Krug“ für das Abitur in Hessen">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
