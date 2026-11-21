@@ -16,9 +16,9 @@ const faecher = defineCollection({
   }),
 });
 
-// Ein Thema = eine .md/.mdx-Datei im Fach-Ordner
+// Ein Thema = Ordner <fach>/<thema>/ mit index.mdx (Frontmatter) – oder eine einzelne <fach>/<thema>.mdx
 const themen = defineCollection({
-  loader: glob({ pattern: ['*/*.{md,mdx}', '!*/fach.md'], base }),
+  loader: glob({ pattern: ['*/*.{md,mdx}', '*/*/index.{md,mdx}', '!*/fach.md'], base }),
   schema: z.object({
     titel: z.string(),
     beschreibung: z.string().default(''),
@@ -32,4 +32,21 @@ const themen = defineCollection({
   }),
 });
 
-export const collections = { faecher, themen };
+// Abschnitte eines Themas: <fach>/<thema>/01-name.mdx … (Reihenfolge = Dateiname)
+const abschnitte = defineCollection({
+  loader: glob({ pattern: ['*/*/*.{md,mdx}', '!*/*/index.{md,mdx}'], base }),
+  schema: z.object({ entwurf: z.boolean().default(false) }),
+});
+
+// Begriffsverzeichnis: <fach>/begriffe.yaml (fachbezogen) und begriffe.yaml (fächerübergreifend)
+const begriff = z.object({
+  def: z.string(), // Definition
+  erkl: z.string(), // Erklärung
+  erlaeut: z.string().optional(), // Erläuterung / Beispiel
+});
+const begriffe = defineCollection({
+  loader: glob({ pattern: ['begriffe.yaml', '*/begriffe.yaml'], base }),
+  schema: z.record(z.string(), begriff),
+});
+
+export const collections = { faecher, themen, abschnitte, begriffe };

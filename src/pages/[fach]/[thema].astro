@@ -4,7 +4,8 @@ import Basis from '../../layouts/Basis.astro';
 import F from '../../components/F.astro';
 import Kasten from '../../components/Kasten.astro';
 import Begriff from '../../components/Begriff.astro';
-import { alleFaecher, alleThemen, url } from '../../lib/inhalt';
+import B from '../../components/B.astro';
+import { alleFaecher, alleThemen, abschnitteVon, url } from '../../lib/inhalt';
 import { artLabel } from '../../design/seite';
 import { loeseFarbe } from '../../design/farben';
 
@@ -20,6 +21,8 @@ export async function getStaticPaths() {
 const { fach, thema } = Astro.props;
 const { Content } = await render(thema);
 const label = artLabel[thema.data.art];
+const teile = await Promise.all((await abschnitteVon(fach.slug, thema.slug)).map(async (a) => (await render(a)).Content));
+const bausteine = { F, Kasten, Begriff, B };
 ---
 <Basis
   titel={thema.data.titel}
@@ -34,6 +37,7 @@ const label = artLabel[thema.data.art];
     {label && <p class="art">{label}</p>}
     <h1>{thema.data.titel}</h1>
     {thema.data.beschreibung && <p class="lead">{thema.data.beschreibung}</p>}
-    <Content components={{ F, Kasten, Begriff }} />
+    <Content components={bausteine} />
+    {teile.map((Teil) => <Teil components={bausteine} />)}
   </article>
 </Basis>

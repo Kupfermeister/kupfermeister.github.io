@@ -1,0 +1,27 @@
+---
+// Fachbegriff aus dem Begriffsverzeichnis: <B>Maxime</B> oder gebeugt <B w="Maxime">Maximen</B>
+// Sucht zuerst in <fach>/begriffe.yaml, dann in begriffe.yaml. Fehlt der Begriff → Build bricht ab.
+import { getEntry } from 'astro:content';
+import Begriff from './Begriff.astro';
+
+interface Props {
+  w?: string;
+}
+const fach = Astro.params.fach ?? '';
+const text = (await Astro.slots.render('default')).replace(/<[^>]*>/g, '').trim();
+const schluessel = (Astro.props.w ?? text).trim();
+
+const finde = async (id: string) => {
+  const daten = (await getEntry('begriffe', id))?.data;
+  if (!daten) return undefined;
+  const k = Object.keys(daten).find((x) => x.toLowerCase() === schluessel.toLowerCase());
+  return k ? daten[k] : undefined;
+};
+const eintrag = (await finde(`${fach}/begriffe`)) ?? (await finde('begriffe'));
+if (!eintrag) {
+  throw new Error(
+    `Begriff "${schluessel}" fehlt – in src/inhalte/${fach}/begriffe.yaml (oder begriffe.yaml) ergänzen.`,
+  );
+}
+---
+<Begriff def={eintrag.def} erkl={eintrag.erkl} erlaeut={eintrag.erlaeut}><Fragment set:html={text} /></Begriff>
