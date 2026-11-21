@@ -137,8 +137,8 @@ h3 { font-size: 1.1rem; margin: 1.6rem 0 0.4rem; }
     linear-gradient(var(--ton), var(--ton)) padding-box,
     conic-gradient(from var(--winkel), var(--linie), color-mix(in oklab, var(--k) 55%, var(--linie)), var(--linie) 40%, var(--linie)) border-box;
 }
-/* Beim Zeigen auf eine Kachel treten die anderen leicht zurück */
-.faecher:has(.fach:hover) .fach:not(:hover) { opacity: 0.92; filter: saturate(0.92); }
+/* Beim Zeigen auf eine Kachel treten die anderen zurück */
+.faecher:has(.fach:hover) .fach:not(:hover) { opacity: 0.72; filter: saturate(0.7); }
 @keyframes kreisen { to { --winkel: 360deg; } }
 /* Hintergrundfoto: Graustufen, in der Fachfarbe eingefärbt (multiplikativ); immer gut sichtbar */
 .fach-bild {
