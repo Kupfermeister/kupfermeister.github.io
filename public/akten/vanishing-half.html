@@ -631,7 +631,7 @@ function sections(n){const ps=Reader.model[n-1].paras;const out=[];let start=0;
  push(0);ps.forEach((p,i)=>{if(p.k==="br")push(i+1)});return out}
 /* page/line numbers of the Cornelsen edition (ISBN 978-3-06-036531-9): simulated typesetting (67 chars/line) between checked anchors */
 const CORN={S:[9,39,61,85,106,126,147,165,184,205,219,234,242,263,281,301,325],E:[37.5,59.5,81.5,104.5,124.5,143.5,163.5,182.5,201.5,217.5,232.5,240.5,259.5,279.5,298.5,323.5,341+18/31],
- A:{1:[[56,387,20],[64,264,21]],15:[[41,0,286],[47,587,287]],17:[[140,0,340],[144,0,341]]},cache:{}};
+ A:{2:[[80,0,50]],1:[[56,387,20],[64,264,21]],15:[[41,0,286],[47,587,287]],17:[[140,0,340],[144,0,341]]},cache:{}};
 function cornLines(ch){const out=[];let afterBr=true;const W=67,IND=3;
  ch.paras.forEach((p,pi)=>{if(p.k==="br"){out.push({pi,off:0,blank:1});afterBr=true;return}
   const words=p.t.split(" ");let pos=0,cur=afterBr?0:IND,start=0,first=true;
