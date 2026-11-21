@@ -9,8 +9,8 @@ const opentype = require('opentype.js');
 const fs = require('fs');
 const pc = require('polygon-clipping');
 
-const FEDER = [[-65, -45], [65, -15], [65, 45], [-65, 15]];
-const T = 455, B = 45, C = 655, A = 755, D = -205, Z = 605; // Federmitte für x-Höhe 500, Versal 700, Ober 800, Unter −250, Ziffer 650
+const FEDER = [[-72, -62], [72, -26], [72, 62], [-72, 26]];
+const T = 438, B = 62, C = 638, A = 738, D = -188, Z = 588; // Federmitte für x-Höhe 500, Versal 700, Ober 800, Unter −250, Ziffer 650
 
 function huelle(pts) {
   pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
@@ -31,7 +31,7 @@ const zug = (strich) => {
 };
 
 // ---- Bausteine ----
-const L = 75, R = 295;
+const L = 80, R = 320;
 const punkt = (x, y) => [[x, y]];
 const bogenL = (l, r, t, b, c = 60) => [[r, t], [l + c, t], [l, t - c], [l, b + c], [l + c, b], [r, b]];
 const bogenR = (l, r, t, b, c = 60) => [[l, t], [r - c, t], [r, t - c], [r, b + c], [r - c, b], [l, b]];
@@ -45,18 +45,18 @@ const def = (ch, striche) => g[ch] = striche;
 
 // ---- Gemeine ----
 def('a', [bogenL(L, R, T, B), [[R, T], [R, B]]]);
-def('b', [[[L, A], [L, B]], bogenR(L, R, T, B)]);
+def('b', [[[L, A], [L, B]], [[L - 60, A - 30], [L, A]], bogenR(L, R, T, B)]);
 def('c', [[[R + 10, T], [L + 60, T], [L, T - 60], [L, B + 60], [L + 60, B], [R + 10, B]]]);
 def('d', [[[R, T - 40], [R, B + 60], [R - 60, B], [L + 60, B], [L, B + 60], [L, T - 60], [L + 60, T], [R - 20, T]], [[R, T - 40], [R, T + 60], [L + 10, A]]]);
 def('e', [[[R + 10, B], [L + 60, B], [L, B + 60], [L, T - 60], [L + 60, T], [R - 50, T], [R, T - 50], [R, 250], [L, 250]]]);
 def('f', [[[L, B], [L, A - 60], [L + 60, A], [R + 10, A]], [[L - 50, T], [R - 40, T]]]);
 def('g', [bogenL(L, R, T, B), [[R, T], [R, D + 60], [R - 60, D], [L - 10, D]]]);
-def('h', [[[L, A], [L, B]], [[L, T - 110], [L + 110, T], [R, T], [R, D + 60], [R - 60, D], [L + 20, D]]]);
-def('i', [[[L, T], [L, B]], punkt(L, 640)]);
-def('j', [[[L, T], [L, D + 60], [L - 60, D], [L - 120, D]], punkt(L, 640)]);
-def('k', [[[L, A], [L, B]], [[L + 30, 240], [R, T]], [[L + 60, 260], [R + 10, B]]]);
-def('l', [[[L, A], [L, B]]]);
-def('m', [[[75, T], [75, B]], schulter(75, 285, T, B), schulter(285, 495, T, B)]);
+def('h', [[[L, A], [L, B]], [[L - 60, A - 30], [L, A]], [[L, T - 110], [L + 110, T], [R, T], [R, D + 60], [R - 60, D], [L + 20, D]]]);
+def('i', [[[L, T], [L, B]], punkt(L, 650)]);
+def('j', [[[L, T], [L, D + 60], [L - 60, D], [L - 120, D]], punkt(L, 650)]);
+def('k', [[[L, A], [L, B]], [[L - 60, A - 30], [L, A]], [[L + 30, 240], [R, T]], [[L + 60, 260], [R + 10, B]]]);
+def('l', [[[L, A], [L, B]], [[L - 60, A - 30], [L, A]]]);
+def('m', [[[80, T], [80, B]], schulter(80, 320, T, B), schulter(320, 560, T, B)]);
 def('n', [[[L, T], [L, B]], schulter(L, R, T, B)]);
 def('o', [ring(L, R, T, B)]);
 def('p', [[[L, T], [L, D]], bogenR(L, R, T, B)]);
@@ -66,17 +66,17 @@ def('s', [sForm(L, R, T, B)]);
 def('t', [[[L, 640], [L, B + 60], [L + 60, B], [R, B]], [[L - 50, T], [R - 40, T]]]);
 def('u', [[[L, T], [L, B + 60], [L + 60, B], [R, B]], [[R, T], [R, B]]]);
 def('v', [[[L, T], [L, B + 60], [L + 60, B], [R, B + 110], [R, T]]]);
-def('w', [[[75, T], [75, B + 60], [135, B], [285, B]], [[285, T], [285, B + 60], [345, B], [495, B + 110], [495, T]]]);
+def('w', [[[80, T], [80, B + 60], [140, B], [320, B]], [[320, T], [320, B + 60], [380, B], [560, B + 110], [560, T]]]);
 def('x', [[[L, T], [R, B]], [[R, T], [L, B]]]);
 def('y', [[[L, T], [L, B + 60], [L + 60, B], [R, B]], [[R, T], [R, D + 60], [R - 60, D], [L - 10, D]]]);
 def('z', [[[L, T], [R, T], [R, T - 50], [L, B + 50], [L, B], [R + 10, B]]]);
 def('ß', [[[L, B], [L, A - 60], [L + 60, A], [R - 60, A], [R, A - 60], [R, 560], [L + 90, 420], [R - 60, 400], [R, 340], [R, B + 60], [R - 60, B], [L + 40, B]]]);
-def('ä', ueber(g.a, L, R, 640));
-def('ö', ueber(g.o, L, R, 640));
-def('ü', ueber(g.u, L, R, 640));
+def('ä', ueber(g.a, L, R, 650));
+def('ö', ueber(g.o, L, R, 650));
+def('ü', ueber(g.u, L, R, 650));
 
 // ---- Versalien ----
-const VL = 85, VR = 385;
+const VL = 90, VR = 420;
 def('A', [[[VL, B], [VL, C - 60], [VL + 60, C], [VR, C], [VR, B]], [[VL, 340], [VR, 340]]]);
 def('B', [[[VL, C], [VL, B]], [[VL, C], [VR - 60, C], [VR, C - 60], [VR, 420], [VR - 60, 360], [VL, 360]], [[VR - 60, 360], [VR, 300], [VR, B + 60], [VR - 60, B], [VL, B]]]);
 def('C', [[[VR + 10, C], [VL + 80, C], [VL, C - 80], [VL, B + 80], [VL + 80, B], [VR + 10, B]], [[VL + 150, C - 120], [VL + 150, C]]]);
@@ -89,7 +89,7 @@ def('I', [[[110, C], [110, B]], [[30, C], [190, C]]]);
 def('J', [[[30, C], [230, C]], [[160, C], [160, B + 60], [100, B], [20, B]]]);
 def('K', [[[VL, C], [VL, B]], [[VL + 40, 320], [VR, C]], [[VL + 70, 350], [VR + 10, B]]]);
 def('L', [[[VL, C], [VL, B], [VR + 10, B]]]);
-def('M', [[[75, C], [75, B]], schulter(75, 295, C, B, 120), schulter(295, 515, C, B, 120)]);
+def('M', [[[80, C], [80, B]], schulter(80, 335, C, B, 120), schulter(335, 590, C, B, 120)]);
 def('N', [[[VL, C], [VL, B]], schulter(VL, VR, C, B, 130)]);
 def('O', [ring(VL, VR, C, B, 80)]);
 def('P', [[[VL, C], [VL, B]], [[VL, C], [VR - 60, C], [VR, C - 60], [VR, 400], [VR - 60, 340], [VL, 340]]]);
@@ -99,16 +99,16 @@ def('S', [sForm(VL, VR, C, B)]);
 def('T', [[[30, C], [410, C]], [[220, C], [220, B]]]);
 def('U', [[[VL, C], [VL, B + 60], [VL + 60, B], [VR, B]], [[VR, C], [VR, B]]]);
 def('V', [[[VL, C], [VL, B + 60], [VL + 60, B], [VR, B + 130], [VR, C]]]);
-def('W', [[[75, C], [75, B + 60], [135, B], [295, B]], [[295, C], [295, B + 60], [355, B], [515, B + 130], [515, C]]]);
+def('W', [[[80, C], [80, B + 60], [140, B], [335, B]], [[335, C], [335, B + 60], [395, B], [590, B + 130], [590, C]]]);
 def('X', [[[VL, C], [VR, B]], [[VR, C], [VL, B]]]);
 def('Y', [[[VL, C], [VL, 400], [VL + 60, 340], [VR, 340]], [[VR, C], [VR, B]]]);
 def('Z', [[[VL, C], [VR, C], [VR, C - 60], [VL, B + 60], [VL, B], [VR + 10, B]]]);
-def('Ä', ueber(g.A, VL, VR, 840));
-def('Ö', ueber(g.O, VL, VR, 840));
-def('Ü', ueber(g.U, VL, VR, 840));
+def('Ä', ueber(g.A, VL, VR, 860));
+def('Ö', ueber(g.O, VL, VR, 860));
+def('Ü', ueber(g.U, VL, VR, 860));
 
 // ---- Ziffern ----
-const ZL = 75, ZR = 305;
+const ZL = 80, ZR = 330;
 def('0', [ring(ZL, ZR, Z, B, 70)]);
 def('1', [[[60, 500], [190, Z]], [[190, Z], [190, B]]]);
 def('2', [[[ZL, Z - 50], [ZL + 50, Z], [ZR - 60, Z], [ZR, Z - 60], [ZR, 400], [ZL, B + 60], [ZL, B], [ZR + 10, B]]]);
