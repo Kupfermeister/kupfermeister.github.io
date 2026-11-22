@@ -230,7 +230,7 @@ q.vq::after{content:close-quote " " attr(data-ref);font:500 .68rem/1 var(--f-mon
 
 /* reader */
 .rd{display:grid;grid-template-columns:15rem minmax(0,1fr);gap:28px;padding-block:18px 80px}
-.rd-side{position:sticky;top:calc(64px + env(safe-area-inset-top,0px));align-self:start;max-height:calc(100vh - 80px);overflow:auto;font:400 .88rem/1.4 var(--f-ui)}
+.rd-side{position:sticky;top:calc(64px + env(safe-area-inset-top,0px));align-self:start;max-height:calc(100vh - 80px);overflow:auto;overscroll-behavior:contain;font:400 .88rem/1.4 var(--f-ui)}
 .rd-side .pt{margin-top:14px;font:600 .7rem/1 var(--f-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
 .rd-side button.ch{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:0;background:transparent;padding:6px 8px;border-radius:6px;cursor:pointer}
 .rd-side button.ch[aria-current="true"]{background:var(--paper2);font-weight:600}
@@ -699,6 +699,9 @@ AFTER.reader=()=>{if(!Reader.ready){bindLock();return}
   const hits=[];for(const ch of Reader.model){ch.paras.forEach((p,i)=>{const k=p.t.toLowerCase().indexOf(s);if(k>=0&&hits.length<60)hits.push({c:ch.n,i,sn:p.t.slice(Math.max(0,k-50),k+s.length+60),k:Math.min(50,k)})})}
   res.hidden=false;res.innerHTML=hits.length?hits.map(h=>`<button type="button" data-hit="${h.c}:${h.i}"><span class="ref">${refOf(h.c)}</span> …${esc(h.sn.slice(0,h.k))}<mark class="hit">${esc(h.sn.slice(h.k,h.k+s.length))}</mark>${esc(h.sn.slice(h.k+s.length))}…</button>`).join(""):`<span class="muted">No matches.</span>`;
   $$("[data-hit]",res).forEach(b=>b.addEventListener("click",()=>{const [c,i]=b.dataset.hit.split(":").map(Number);NAV.push(snap());jumpTo(c,i)}))});
+ /*seitenleiste eigenständig scrollbar (eingebettet: sticky nachbilden)*/
+ if(document.documentElement.classList.contains("eingebettet")){window._pinSide=()=>{const side=$(".rd-side");if(current!=="reader"||!side)return;const rd=side.parentElement;side.style.position="relative";side.style.top="0";const h=window.innerHeight-24;side.style.maxHeight=h+"px";const off=Math.max(0,Math.min(window.scrollY-rd.getBoundingClientRect().top+12,rd.offsetHeight-side.offsetHeight));side.style.transform=`translateY(${off}px)`};
+  if(!window._pinBound){window._pinBound=1;window.addEventListener("scroll",()=>window._pinSide(),{passive:true});addEventListener("resize",()=>window._pinSide())}window._pinSide()}
  let t;window.onscroll=()=>{if(current!=="reader")return;clearTimeout(t);t=setTimeout(()=>{const ps=$$("#text p[data-i]");const y=80;let cur=0;for(const p of ps){if(p.getBoundingClientRect().top>y)break;cur=+p.dataset.i}saveRPos(cur)},300)};
  if(Reader.pending!=null){const i=Reader.pending;Reader.pending=null;setTimeout(()=>{const p=$(`#text p[data-i="${i}"]`);if(p){p.scrollIntoView({block:"center"});p.classList.add("flash")}},40)}};
 /* interactive card in the reader */
