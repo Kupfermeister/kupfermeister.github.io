@@ -236,6 +236,10 @@ q.vq::after{content:close-quote " " attr(data-ref);font:500 .68rem/1 var(--f-mon
 .rd-side button.ch[aria-current="true"]{background:var(--paper2);font-weight:600}
 .rd-side button.ch .sw{width:4px;height:16px;border-radius:2px;flex:none}
 .rd-main{min-width:0}
+@media (min-width:861px){html.eingebettet .rd{padding-block:0;grid-template-rows:minmax(0,1fr)}
+ html.eingebettet .rd-side{position:static;max-height:none;height:100%;overflow:auto;overscroll-behavior:contain}
+ html.eingebettet .rd-main{height:100%;overflow:auto;padding-bottom:40px}
+ html.eingebettet .rd-tools{top:0}}
 .rd-tools{position:sticky;top:calc(52px + env(safe-area-inset-top,0px));z-index:5;background:var(--paper);padding-block:10px;border-bottom:1px solid var(--rule);display:grid;gap:8px}
 .rd-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .strip{display:flex;height:12px;border-radius:3px;overflow:hidden;cursor:pointer;position:relative}
@@ -674,35 +678,33 @@ R.reader=()=>{if(!Reader.ready)return view("Reader","Tile 13","Read the complete
  </div><article class="text ${o.nm?"":"nonm"} ${o.pr?"":"nopr"} ${o.sp?"":"nosp"} ${Reader.focus?"focus":""}" id="text">${renderChapter(Reader.ch)}
  <div class="chips" style="justify-content:space-between;margin-top:30px">${Reader.ch>1?`<button class="chip" type="button" data-rch="${Reader.ch-1}">← Ch. ${Reader.ch-1}</button>`:"<span></span>"}${Reader.ch<17?`<button class="chip" type="button" data-rch="${Reader.ch+1}">Ch. ${Reader.ch+1} →</button>`:""}</div></article></div></div></div>`};
 
-AFTER.reader=()=>{if(!Reader.ready){bindLock();return}
- $$("[data-rch]").forEach(b=>b.addEventListener("click",()=>{Reader.ch=+b.dataset.rch;saveRPos(0);render();window.scrollTo(0,0)}));
- $("#chsel").addEventListener("change",e=>{Reader.ch=+e.target.value;saveRPos(0);render();window.scrollTo(0,0)});
- $$("[data-opt]").forEach(b=>b.addEventListener("click",()=>{Reader.opts[b.dataset.opt]=!Reader.opts[b.dataset.opt];LS.set("ropts",Reader.opts);const y=window.scrollY;render();window.scrollTo(0,y)}));
- $("#focus").addEventListener("change",e=>{Reader.focus=e.target.value||null;const y=window.scrollY;render();window.scrollTo(0,y)});
+AFTER.reader=()=>{const EMB=document.documentElement.classList.contains("eingebettet")&&innerWidth>860,RM=()=>$(".rd-main"),rTo=y=>{if(EMB)RM().scrollTop=y;else window.scrollTo(0,y)},rY=()=>EMB?RM().scrollTop:window.scrollY;if(EMB){const rd=$(".rd");if(rd)rd.style.height=(window.innerHeight-16)+"px"}if(!Reader.ready){bindLock();return}
+ $$("[data-rch]").forEach(b=>b.addEventListener("click",()=>{Reader.ch=+b.dataset.rch;saveRPos(0);render();rTo(0)}));
+ $("#chsel").addEventListener("change",e=>{Reader.ch=+e.target.value;saveRPos(0);render();rTo(0)});
+ $$("[data-opt]").forEach(b=>b.addEventListener("click",()=>{Reader.opts[b.dataset.opt]=!Reader.opts[b.dataset.opt];LS.set("ropts",Reader.opts);const y=rY();render();rTo(y)}));
+ $("#focus").addEventListener("change",e=>{Reader.focus=e.target.value||null;const y=rY();render();rTo(y)});
  $("#forget").addEventListener("click",async()=>{await idb.del("model");Reader.ready=false;Reader.model=null;toast("Your copy was removed from this browser.");render()});
  const strip=$("#strip");const tot=D.words.reduce((a,b)=>a+b,0);let acc=0;for(let i=0;i<Reader.ch-1;i++)acc+=D.words[i];
  $("#here").style.left=`calc(${(acc+D.words[Reader.ch-1]/2)/tot*100}% - 1px)`;
- strip.addEventListener("click",e=>{const r=strip.getBoundingClientRect();const f=(e.clientX-r.left)/r.width*tot;let a=0;for(let i=0;i<17;i++){a+=D.words[i];if(f<=a){Reader.ch=i+1;break}}render();window.scrollTo(0,0)});
+ strip.addEventListener("click",e=>{const r=strip.getBoundingClientRect();const f=(e.clientX-r.left)/r.width*tot;let a=0;for(let i=0;i<17;i++){a+=D.words[i];if(f<=a){Reader.ch=i+1;break}}render();rTo(0)});
  $("#text").addEventListener("click",e=>{const pm=e.target.closest(".pm");const tk=e.target.closest(".pr,.nm,.sp,.tag");
   if(pm){openCard(pm,refCard(Reader.ch,+pm.dataset.pm));return}
   if(tk){if(tk.classList.contains("pr")&&!Reader.opts.pr)return;if(tk.classList.contains("nm")&&!Reader.opts.nm)return;if((tk.classList.contains("sp")||tk.classList.contains("tag"))&&!Reader.opts.sp)return;
    e.stopPropagation();openCard(tk,personCard(tk.dataset.c,tk.classList.contains("pr")?"pronoun":tk.classList.contains("nm")?"name":"speech",tk.textContent))}});
  $$("[data-x]").forEach(b=>b.addEventListener("click",()=>crossGo(JSON.parse(b.dataset.x))));
- const goPara=i=>{const p=$(`#text p[data-i="${i}"]`);if(p){const y=p.getBoundingClientRect().top+window.scrollY-($(".rd-tools").offsetHeight+70);window.scrollTo(0,Math.max(0,y));p.classList.remove("flash");void p.offsetWidth;p.classList.add("flash")}};
+ const goPara=i=>{const p=$(`#text p[data-i="${i}"]`);if(p){const y=(EMB?p.getBoundingClientRect().top-RM().getBoundingClientRect().top+RM().scrollTop-$(".rd-tools").offsetHeight-12:p.getBoundingClientRect().top+window.scrollY-($(".rd-tools").offsetHeight+70));rTo(Math.max(0,y));p.classList.remove("flash");void p.offsetWidth;p.classList.add("flash")}};
  $$("[data-sec]").forEach(b=>b.addEventListener("click",()=>goPara(+b.dataset.sec)));
  $("#secsel").addEventListener("change",e=>goPara(+e.target.value));
  const curSec=()=>{const S=sections(Reader.ch);const top=$(".rd-tools").getBoundingClientRect().bottom+20;let k=0;S.forEach((x,j)=>{const p=$(`#text p[data-i="${x.i}"]`);if(p&&p.getBoundingClientRect().top<=top+5)k=j});return k};
  $("#secprev").addEventListener("click",()=>{const S=sections(Reader.ch),k=curSec();const p=$(`#text p[data-i="${S[k].i}"]`);const atStart=p&&p.getBoundingClientRect().top>$(".rd-tools").getBoundingClientRect().bottom-5;goPara(S[Math.max(0,atStart?k-1:k)].i)});
- $("#secnext").addEventListener("click",()=>{const S=sections(Reader.ch),k=curSec();if(k+1<S.length)goPara(S[k+1].i);else if(Reader.ch<17){Reader.ch++;saveRPos(0);render();window.scrollTo(0,0)}});
- const markSec=()=>{const k=curSec();$$(".rd-side .sec").forEach(b=>b.setAttribute("aria-current",String(+b.dataset.k===k+1)));const ss=$("#secsel");if(ss)ss.selectedIndex=k};markSec();window.addEventListener("scroll",()=>{if(current==="reader")markSec()},{passive:true});
+ $("#secnext").addEventListener("click",()=>{const S=sections(Reader.ch),k=curSec();if(k+1<S.length)goPara(S[k+1].i);else if(Reader.ch<17){Reader.ch++;saveRPos(0);render();rTo(0)}});
+ const markSec=()=>{const k=curSec();$$(".rd-side .sec").forEach(b=>b.setAttribute("aria-current",String(+b.dataset.k===k+1)));const ss=$("#secsel");if(ss)ss.selectedIndex=k};markSec();window.addEventListener("scroll",()=>{if(current==="reader")markSec()},{passive:true});if(EMB)RM().addEventListener("scroll",markSec,{passive:true});
  const q=$("#q"),res=$("#res");q.addEventListener("input",()=>{const s=q.value.trim().toLowerCase();if(s.length<3){res.hidden=true;return}
   const hits=[];for(const ch of Reader.model){ch.paras.forEach((p,i)=>{const k=p.t.toLowerCase().indexOf(s);if(k>=0&&hits.length<60)hits.push({c:ch.n,i,sn:p.t.slice(Math.max(0,k-50),k+s.length+60),k:Math.min(50,k)})})}
   res.hidden=false;res.innerHTML=hits.length?hits.map(h=>`<button type="button" data-hit="${h.c}:${h.i}"><span class="ref">${refOf(h.c)}</span> …${esc(h.sn.slice(0,h.k))}<mark class="hit">${esc(h.sn.slice(h.k,h.k+s.length))}</mark>${esc(h.sn.slice(h.k+s.length))}…</button>`).join(""):`<span class="muted">No matches.</span>`;
   $$("[data-hit]",res).forEach(b=>b.addEventListener("click",()=>{const [c,i]=b.dataset.hit.split(":").map(Number);NAV.push(snap());jumpTo(c,i)}))});
- /*seitenleiste eigenständig scrollbar (eingebettet: sticky nachbilden)*/
- if(document.documentElement.classList.contains("eingebettet")){window._pinSide=()=>{const side=$(".rd-side");if(current!=="reader"||!side)return;const rd=side.parentElement;side.style.position="relative";side.style.top="0";const h=window.innerHeight-24;side.style.maxHeight=h+"px";const off=Math.max(0,Math.min(window.scrollY-rd.getBoundingClientRect().top+12,rd.offsetHeight-side.offsetHeight));side.style.transform=`translateY(${off}px)`};
-  if(!window._pinBound){window._pinBound=1;window.addEventListener("scroll",()=>window._pinSide(),{passive:true});addEventListener("resize",()=>window._pinSide())}window._pinSide()}
- let t;window.onscroll=()=>{if(current!=="reader")return;clearTimeout(t);t=setTimeout(()=>{const ps=$$("#text p[data-i]");const y=80;let cur=0;for(const p of ps){if(p.getBoundingClientRect().top>y)break;cur=+p.dataset.i}saveRPos(cur)},300)};
+ let t;const svPos=()=>{if(current!=="reader")return;clearTimeout(t);t=setTimeout(()=>{const ps=$$("#text p[data-i]");const y=EMB?RM().getBoundingClientRect().top+$(".rd-tools").offsetHeight+10:80;let cur=0;for(const p of ps){if(p.getBoundingClientRect().top>y)break;cur=+p.dataset.i}saveRPos(cur)},300)};
+ window.onscroll=svPos;if(EMB)RM().addEventListener("scroll",svPos,{passive:true});
  if(Reader.pending!=null){const i=Reader.pending;Reader.pending=null;setTimeout(()=>{const p=$(`#text p[data-i="${i}"]`);if(p){p.scrollIntoView({block:"center"});p.classList.add("flash")}},40)}};
 /* interactive card in the reader */
 function closeCard(){const c=$(".cpop");if(c)c.remove()}
