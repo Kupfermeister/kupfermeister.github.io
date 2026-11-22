@@ -1,8 +1,9 @@
 ---
 // Bettet eine Lernakte aus public/akten/ nahtlos ein: keine Box, Höhe wächst mit dem Inhalt.
 const { datei, titel } = Astro.props;
+const v = Date.now(); // neue Version je Build, damit Browser (iPad) keine alte Kopie zeigen
 ---
-<iframe data-akte src={`/akten/${datei}.html`} title={titel} scrolling="no"></iframe>
+<iframe data-akte src={`/akten/${datei}.html?v=${v}`} title={titel} scrolling="no"></iframe>
 
 <style>
   iframe { display: block; width: 100%; height: 80vh; border: 0; background: transparent; overflow: hidden; }

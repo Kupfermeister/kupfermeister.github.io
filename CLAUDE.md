@@ -32,6 +32,7 @@ Astro-Seite, veröffentlicht über GitHub Pages (`.github/workflows/deploy.yml`,
 ## Prüfen und Veröffentlichen (Pflicht nach jeder Änderung)
 1. `npm run build` muss fehlerfrei laufen.
 2. Danach **immer** veröffentlichen, ohne Rückfrage: `git add -A`, `git commit -m "<kurz, deutsch>"`, `git push` (Branch `main`, Repo Kupfermeister/kupfermeister.github.io). GitHub Actions baut und lädt die Seite hoch.
+   Danach mit `gh run list -L 1` prüfen, dass das Deployment erfolgreich war (dann ist die neue Version auch auf dem iPad).
 3. Schlägt der Build fehl: nicht pushen, erst reparieren.
 
 Lokal ansehen: `npm run dev`.
